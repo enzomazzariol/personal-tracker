@@ -12,6 +12,7 @@ const NAV = [
   { href: '/semana', label: 'Semana' },
   { href: '/tareas', label: 'Tareas' },
   { href: '/notas', label: 'Notas' },
+  { href: '/proyectos', label: 'Proyectos', deskOnly: true },
   { href: '/recordatorios', label: 'Recordatorios', deskOnly: true },
   { href: '/revision', label: 'Revisión', deskOnly: true },
 ]
@@ -36,8 +37,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   if (!session) return <Login />
 
   const now = new Date()
-  const current = (href: string) => (path === href ? 'page' : undefined)
-  const inMore = ['/mas', '/recordatorios', '/revision'].includes(path)
+  const isIn = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`))
+  const current = (href: string) => (isIn(href) ? 'page' : undefined)
+  const inMore = isIn('/mas') || NAV.some((n) => n.deskOnly && isIn(n.href))
 
   return (
     <div className="shell">

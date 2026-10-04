@@ -24,7 +24,7 @@ para cerrar el registro, desactívalo en Supabase → Authentication. Detalles e
 
 - `app/page.tsx`: Hoy (bloque en curso, cronómetro, resto del día, tareas y recordatorios, captura rápida)
 - `app/semana`: horas por área, los siete días y alta de bloques
-- `app/tareas`, `app/notas`, `app/recordatorios`, `app/revision`
+- `app/tareas`, `app/notas`, `app/proyectos`, `app/recordatorios`, `app/revision`
 - `components/Shell.tsx`: sesión y navegación (barra inferior en móvil, menú superior en escritorio)
 - `lib/db.ts`: cliente de Supabase, tipos y utilidades de fechas y horas
 - `supabase/`: esquema, migraciones y la prueba del esquema (`sh supabase/tests/run.sh`, necesita Docker)

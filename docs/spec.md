@@ -35,7 +35,7 @@ Los campos son una propuesta inicial; se ajustan al construir cada sección.
 
 | Sección | Qué hace | Datos previstos |
 |---|---|---|
-| Proyectos | Cada cliente o proyecto con sus tareas, horas dedicadas y fechas de entrega | `projects` (nombre, cliente, estado, entrega); `tasks.project_id`; `blocks.project_id` para sumar horas |
+| Proyectos (hecha) | Cada cliente o proyecto con sus tareas, horas dedicadas y fechas de entrega | `projects` (nombre, cliente, estado, entrega); `tasks.project_id`; `blocks.project_id` para sumar horas |
 | Ofertas | Registro de candidaturas | `job_applications` (empresa, puesto, enlace, fecha, estado: guardada, aplicada, entrevista, oferta, descartada; notas) |
 | Metas | Objetivos por trimestre o año con hitos y avance | `goals` (título, periodo, fecha límite, estado); `goal_milestones` (título, hecho) |
 | Lectura | Libros leídos y en curso, páginas por día, notas de cada libro | `books` (título, autor, páginas, estado, inicio, fin); `reading_log` (libro, fecha, páginas); `book_notes` |

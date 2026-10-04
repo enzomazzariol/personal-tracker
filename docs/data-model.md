@@ -44,6 +44,7 @@ Una fila por semana, identificada por su lunes.
 | date | date | Día del bloque |
 | start_time, end_time | time | La duración planificada es la diferencia |
 | area_id | text | Referencia a `areas` |
+| project_id | uuid, opcional | Referencia a `projects`; queda nulo si se borra el proyecto |
 | tag | text | Etiqueta corta opcional |
 | title | text | |
 | why | text | Frase de contexto que se muestra bajo las tareas |
@@ -70,10 +71,26 @@ Tiempo real de un bloque: `actual_minutes` más el tiempo transcurrido desde `st
 | id | uuid, clave | |
 | title | text | |
 | area_id | text, opcional | |
+| project_id | uuid, opcional | Referencia a `projects`; queda nulo si se borra el proyecto |
 | due_date | date, opcional | Sin fecha: bandeja |
 | done | boolean | |
 | done_at | timestamptz | |
 | created_at | timestamptz | |
+
+### projects
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | uuid, clave | |
+| name | text | No vacío |
+| client | text | Opcional (cadena vacía) |
+| status | text | `active`, `paused` o `done` |
+| due_date | date, opcional | Fecha de entrega |
+| created_at | timestamptz | |
+
+### project_summary (vista)
+
+Cada fila de `projects` con `minutes` (suma de `actual_minutes` de sus bloques) y `open_tasks` (tareas sin hacer). Es `security_invoker`, así que respeta el RLS de quien la consulta.
 
 ### notes
 
@@ -137,7 +154,7 @@ grant select, insert, update, delete on public.ejemplo to authenticated;
 revoke all on public.ejemplo from anon;
 ```
 
-Si otra tabla va a apuntar a esta, añade `unique (id, user_id)` y referencia ese par, como hace `blocks`.
+Si otra tabla va a apuntar a esta, añade `unique (id, user_id)` y referencia ese par, como hace `projects`.
 
 ## Pruebas
 

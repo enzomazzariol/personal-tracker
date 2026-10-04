@@ -8,6 +8,10 @@ export default function Mas() {
     <>
       <h1 className="title">Más</h1>
       <div className="list">
+        <Link className="item between" href="/proyectos">
+          <span>Proyectos</span>
+          <span className="muted">→</span>
+        </Link>
         <Link className="item between" href="/recordatorios">
           <span>Recordatorios</span>
           <span className="muted">→</span>
