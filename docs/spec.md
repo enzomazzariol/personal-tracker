@@ -53,7 +53,6 @@ Los campos son una propuesta inicial; se ajustan al construir cada sección.
 ## Más adelante
 
 - Dinero: gastos, ingresos y presupuesto. Se definirá a partir de una exportación de la app que se usa ahora.
-- Fondo animado Aurora (React Bits). Choca con la regla de diseño de no usar brillos, así que hay que decidir dónde va.
 - Mover un bloque no hecho al colchón con un toque.
 - Rachas de hábitos.
 - Notificaciones push.

@@ -115,7 +115,7 @@ export default function Hoy() {
           </span>
         </div>
         {week?.goal && (
-          <div className="stack mob">
+          <div className="stack">
             <span className="label">Meta de la semana</span>
             <p className="sm muted">{week.goal}</p>
           </div>
@@ -179,13 +179,13 @@ export default function Hoy() {
                   {isRunning ? (
                     <>
                       <button className="btn ghost" onClick={() => pause(current)}>Pausar</button>
-                      <button className="btn dark" onClick={() => finish(current)}>Terminar bloque</button>
+                      <button className="btn primary" onClick={() => finish(current)}>Terminar bloque</button>
                     </>
                   ) : (
                     <>
                       <button className="btn ghost" onClick={() => skip(current)}>Saltar</button>
                       <button className="btn ghost" onClick={() => finish(current)}>Marcar hecho</button>
-                      <button className="btn dark" onClick={() => start(current)}>{current.actual_minutes ? 'Reanudar' : 'Empezar bloque'}</button>
+                      <button className="btn primary" onClick={() => start(current)}>{current.actual_minutes ? 'Reanudar' : 'Empezar bloque'}</button>
                     </>
                   )}
                 </div>
@@ -233,7 +233,7 @@ export default function Hoy() {
                   <Check on={false} label="Marcar recordatorio como hecho" onClick={() => doneReminder(r)} />
                   <span className="dot" />
                   <span className="sm grow">{r.title}</span>
-                  <span className="mono" style={{ color: 'var(--pale)' }}>
+                  <span className="mono" style={{ color: 'var(--muted)' }}>
                     {new Date(r.remind_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
@@ -256,7 +256,7 @@ export default function Hoy() {
               <button type="button" aria-pressed={kind === 'task'} onClick={() => setKind('task')}>Tarea</button>
               <button type="button" aria-pressed={kind === 'note'} onClick={() => setKind('note')}>Nota</button>
             </div>
-            <button className="btn light">Añadir</button>
+            <button className="btn primary">Añadir</button>
             <span className="mono green" role="status" style={{ flexBasis: '100%', minHeight: 14 }}>{saved}</span>
           </form>
         </div>

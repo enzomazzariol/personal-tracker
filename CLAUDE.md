@@ -19,7 +19,7 @@ Variables en `.env.local` (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL` y `NE
 - Next.js 16 (App Router) y React 19. Es una versión reciente: si dudas de una API, consulta la documentación incluida en `node_modules/next/dist/docs/` en lugar de fiarte de la memoria.
 - Todas las páginas son componentes de cliente (`'use client'`) que hablan con Supabase directamente desde el navegador con `supabase-js`. No hay rutas de API, server actions ni middleware.
 - La seguridad la pone la base de datos: RLS en todas las tablas y una tabla `private.owners` con el único correo autorizado.
-- `components/Shell.tsx` gestiona la sesión (muestra `Login` si no hay) y la navegación: barra inferior en móvil, columna lateral desde 900 px.
+- `components/Shell.tsx` gestiona la sesión (muestra `Login` si no hay) y la navegación: barra inferior en móvil, menú superior desde 900 px.
 - `lib/db.ts` contiene el cliente, los tipos de cada tabla y las utilidades de fechas y horas. Reutilízalas; no dupliques.
 - Los estilos están en `app/globals.css`, sin Tailwind ni librerías de componentes.
 

@@ -30,7 +30,7 @@ function TaskForm({ areas, initial, submit, onSave, id }: { areas: Area[]; initi
       </select>
       <label className="sr" htmlFor={`${id}-d`}>Fecha</label>
       <input id={`${id}-d`} className="input" type="date" value={d.due_date} onChange={(e) => setD({ ...d, due_date: e.target.value })} />
-      <button className="btn light">{submit}</button>
+      <button className="btn primary">{submit}</button>
     </form>
   )
 }

@@ -146,7 +146,7 @@ export default function Semana() {
               <option key={a.id} value={a.id}>{a.name}</option>
             ))}
           </select>
-          <button className="btn light">Añadir</button>
+          <button className="btn primary">Añadir</button>
         </form>
       </section>
     </>

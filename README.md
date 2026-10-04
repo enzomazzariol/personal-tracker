@@ -25,6 +25,6 @@ cualquier otra cuenta que se registre no ve ningún dato.
 - `app/page.tsx`: Hoy (bloque en curso, cronómetro, resto del día, tareas y recordatorios, captura rápida)
 - `app/semana`: horas por área, los siete días y alta de bloques
 - `app/tareas`, `app/notas`, `app/recordatorios`, `app/revision`
-- `components/Shell.tsx`: sesión y navegación (barra inferior en móvil, columna lateral en escritorio)
+- `components/Shell.tsx`: sesión y navegación (barra inferior en móvil, menú superior en escritorio)
 - `lib/db.ts`: cliente de Supabase, tipos y utilidades de fechas y horas
 - `supabase/`: esquema y datos iniciales

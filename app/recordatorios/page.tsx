@@ -57,7 +57,7 @@ export default function Recordatorios() {
         <input id="r-title" className="input grow" placeholder="Nuevo recordatorio" value={title} onChange={(e) => setTitle(e.target.value)} />
         <label className="sr" htmlFor="r-when">Fecha y hora</label>
         <input id="r-when" className="input" type="datetime-local" required value={when} onChange={(e) => setWhen(e.target.value)} />
-        <button className="btn light">Añadir</button>
+        <button className="btn primary">Añadir</button>
       </form>
       <section className="stack">
         <span className="label">Pendientes</span>
@@ -65,7 +65,7 @@ export default function Recordatorios() {
           {pending.map(row)}
           {pending.length === 0 && <p className="empty">No hay recordatorios pendientes.</p>}
         </div>
-        <p className="sm muted">Los que ya tocan aparecen en Hoy con un punto naranja.</p>
+        <p className="sm muted">Los que ya tocan aparecen en Hoy, marcados con un punto.</p>
       </section>
       {done.length > 0 && (
         <section className="stack">
