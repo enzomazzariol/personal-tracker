@@ -4,12 +4,14 @@ Postgres en Supabase. El esquema completo está en `supabase/schema.sql`; los ca
 
 ## Permisos
 
-- `private.owners (email)`: el único correo autorizado. El esquema `private` no se expone por la API.
-- `private.is_owner()`: devuelve verdadero si el correo de la sesión está en `private.owners`.
-- Todas las tablas de `public` tienen RLS con una política `owner_all` para el rol `authenticated` que exige `is_owner()` tanto para leer como para escribir. El rol `anon` no tiene ningún permiso.
-- No hay columna de usuario en las tablas: todos los datos son del dueño.
+Multiusuario: cada cuenta ve y escribe solo sus datos.
 
-Consecuencia: cualquiera puede registrarse en Supabase Auth, pero una cuenta cuyo correo no esté en `owners` no ve ni escribe nada.
+- Todas las tablas de `public` tienen `user_id uuid not null default auth.uid()`, con referencia a `auth.users` y borrado en cascada. Desde la app no hace falta enviarlo: lo pone la base de datos.
+- Cada tabla tiene RLS con la política `own_rows` para `authenticated`: `user_id = (select auth.uid())` para leer y escribir. El rol `anon` no tiene ningún permiso.
+- Las referencias entre tablas incluyen `user_id` (por ejemplo, `block_tasks (block_id, user_id)` apunta a `blocks (id, user_id)`), para que nadie pueda colgar filas de datos de otra cuenta aunque conozca su id.
+- Las claves naturales son por usuario: `areas (user_id, id)` y `weeks (user_id, start_date)`.
+- Al registrarse, el disparador `on_auth_user_created` (función `private.seed_new_user`) crea las áreas por defecto. El esquema `private` no se expone por la API.
+- Cualquiera puede registrarse. Para cerrar el registro, desactívalo en Supabase → Authentication → Sign In / Providers.
 
 ## Tablas
 
@@ -17,7 +19,7 @@ Consecuencia: cualquiera puede registrarse en Supabase Auth, pero una cuenta cuy
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| id | text, clave | `dev`, `guarapo`, `estudio`, `lectura`, `ejercicio`, `colchon` |
+| user_id, id | uuid y text, clave | Por defecto: `trabajo`, `estudio`, `lectura`, `ejercicio`, `colchon` |
 | name | text | Nombre visible |
 | sort | int | Orden |
 
@@ -27,7 +29,7 @@ Una fila por semana, identificada por su lunes.
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| start_date | date, clave | Lunes de la semana |
+| user_id, start_date | uuid y date, clave | Lunes de la semana |
 | number | int | Número de semana del plan |
 | goal | text | Meta de la semana, visible en Hoy y en la columna lateral |
 | wins | text[] | Cosas que salieron bien (revisión) |
@@ -94,7 +96,13 @@ Tiempo real de un bloque: `actual_minutes` más el tiempo transcurrido desde `st
 
 ## Cargar una semana
 
-Una fila en `weeks` y, por cada bloque, una fila en `blocks` con sus `block_tasks`:
+Desde el editor SQL no hay sesión, así que `auth.uid()` es nulo. La primera línea del script indica a qué cuenta van los datos:
+
+```sql
+select set_config('request.jwt.claim.sub', (select id::text from auth.users where email = 'tu-correo@ejemplo.com'), false);
+```
+
+Después, una fila en `weeks` y, por cada bloque, una fila en `blocks` con sus `block_tasks`:
 
 ```sql
 insert into public.weeks (start_date, number, goal)
@@ -117,12 +125,20 @@ Los archivos con planes reales (`supabase/seed_*.sql`) no se suben al repositori
 ```sql
 create table public.ejemplo (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   created_at timestamptz not null default now()
 );
+create index ejemplo_user_idx on public.ejemplo (user_id);
 
 alter table public.ejemplo enable row level security;
-create policy "owner_all" on public.ejemplo for all to authenticated
-  using ((select private.is_owner())) with check ((select private.is_owner()));
+create policy "own_rows" on public.ejemplo for all to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 grant select, insert, update, delete on public.ejemplo to authenticated;
 revoke all on public.ejemplo from anon;
 ```
+
+Si otra tabla va a apuntar a esta, añade `unique (id, user_id)` y referencia ese par, como hace `blocks`.
+
+## Pruebas
+
+`sh supabase/tests/run.sh` levanta un Postgres desechable en Docker y comprueba dos casos: el esquema de la etapa 1 con todas las migraciones aplicadas y `schema.sql` desde cero. En ambos verifica que una cuenta no ve ni toca los datos de otra. Ejecútalo tras cualquier cambio de esquema.

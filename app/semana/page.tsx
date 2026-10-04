@@ -16,7 +16,7 @@ export default function Semana() {
   const [blocks, setBlocks] = useState<Block[] | null>(null)
   const [week, setWeek] = useState<Week | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
-  const [form, setForm] = useState({ date: today, start: '11:00', end: '12:00', area: 'dev', title: '' })
+  const [form, setForm] = useState({ date: today, start: '11:00', end: '12:00', area: '', title: '' })
   const now = Date.now()
 
   const load = useCallback(async () => {
@@ -44,8 +44,9 @@ export default function Semana() {
   }
   async function addBlock(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim() || form.end <= form.start) return
-    await supabase.from('blocks').insert({ date: form.date, start_time: form.start, end_time: form.end, area_id: form.area, title: form.title.trim(), tag: '' })
+    const area = form.area || areas[0]?.id
+    if (!form.title.trim() || form.end <= form.start || !area) return
+    await supabase.from('blocks').insert({ date: form.date, start_time: form.start, end_time: form.end, area_id: area, title: form.title.trim(), tag: '' })
     setForm({ ...form, title: '' })
     load()
   }
@@ -141,7 +142,7 @@ export default function Semana() {
           <label className="sr" htmlFor="b-end">Fin</label>
           <input id="b-end" className="input" type="time" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} />
           <label className="sr" htmlFor="b-area">Área</label>
-          <select id="b-area" className="select" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })}>
+          <select id="b-area" className="select" value={form.area || areas[0]?.id} onChange={(e) => setForm({ ...form, area: e.target.value })}>
             {areas.map((a) => (
               <option key={a.id} value={a.id}>{a.name}</option>
             ))}

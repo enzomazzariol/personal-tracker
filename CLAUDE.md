@@ -18,7 +18,7 @@ Variables en `.env.local` (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL` y `NE
 
 - Next.js 16 (App Router) y React 19. Es una versión reciente: si dudas de una API, consulta la documentación incluida en `node_modules/next/dist/docs/` en lugar de fiarte de la memoria.
 - Todas las páginas son componentes de cliente (`'use client'`) que hablan con Supabase directamente desde el navegador con `supabase-js`. No hay rutas de API, server actions ni middleware.
-- La seguridad la pone la base de datos: RLS en todas las tablas y una tabla `private.owners` con el único correo autorizado.
+- Multiusuario. La seguridad la pone la base de datos: cada fila tiene `user_id` (por defecto `auth.uid()`) y RLS en todas las tablas.
 - `components/Shell.tsx` gestiona la sesión (muestra `Login` si no hay) y la navegación: barra inferior en móvil, menú superior desde 900 px.
 - `lib/db.ts` contiene el cliente, los tipos de cada tabla y las utilidades de fechas y horas. Reutilízalas; no dupliques.
 - Los estilos están en `app/globals.css`, sin Tailwind ni librerías de componentes.
@@ -35,6 +35,7 @@ components/              Shell, Login, Check
 lib/db.ts                Cliente, tipos, utilidades
 supabase/schema.sql      Esquema completo y permisos
 supabase/migrations/     Cambios posteriores al esquema inicial
+supabase/tests/          Prueba del esquema en Docker (run.sh)
 docs/                    Especificación, diseño y modelo de datos
 ```
 
@@ -50,9 +51,11 @@ docs/                    Especificación, diseño y modelo de datos
 
 ## Reglas de la base de datos
 
-- Cada tabla nueva lleva RLS activado, la política `owner_all` y los permisos para `authenticated`, igual que en `supabase/schema.sql`. Nunca des permisos a `anon`.
+- Cada tabla nueva lleva `user_id`, RLS activado, la política `own_rows` y los permisos para `authenticated` (plantilla en `docs/data-model.md`). Nunca des permisos a `anon`.
+- Las referencias entre tablas incluyen `user_id` para que no se puedan mezclar datos de cuentas distintas.
 - Los cambios de esquema van como archivo nuevo en `supabase/migrations/` con nombre `NNNN_descripcion.sql`, y además se reflejan en `schema.sql` para que siga creando la base de datos completa desde cero.
 - Si añades una tabla, añade su tipo en `lib/db.ts` y documenta sus campos en `docs/data-model.md`.
+- Tras cualquier cambio de esquema, `sh supabase/tests/run.sh` debe terminar en OK. Si la tabla es nueva, añade una comprobación de aislamiento en `supabase/tests/checks.sql`.
 
 ## Qué no debe entrar en el repositorio
 
@@ -64,7 +67,7 @@ El repositorio es público.
 
 ## Cómo añadir una sección
 
-1. Define las tablas en una migración y actualiza `schema.sql`, `lib/db.ts` y `docs/data-model.md`.
+1. Define las tablas en una migración y actualiza `schema.sql`, `lib/db.ts` y `docs/data-model.md`. Pasa la prueba del esquema.
 2. Crea `app/<seccion>/page.tsx` siguiendo el patrón de `app/tareas/page.tsx`.
 3. Añádela a `NAV` en `components/Shell.tsx`. En móvil la barra inferior tiene cinco huecos; las secciones nuevas van con `deskOnly: true` y se enlazan desde `app/mas/page.tsx`.
 4. Usa las clases existentes de `globals.css` antes de crear otras nuevas.
