@@ -84,6 +84,7 @@ Tiempo real de un bloque: `actual_minutes` más el tiempo transcurrido desde `st
 | id | uuid, clave | |
 | name | text | No vacío |
 | client | text | Opcional (cadena vacía) |
+| area_id | text, opcional | Referencia a `areas`. Un bloque sin proyecto muestra en Hoy las tareas de los proyectos activos de su área |
 | status | text | `active`, `paused` o `done` |
 | due_date | date, opcional | Fecha de entrega |
 | created_at | timestamptz | |

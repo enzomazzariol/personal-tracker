@@ -8,14 +8,14 @@ import { EMPTY_TASK, useTasks } from '@/lib/useTasks'
 
 export default function Tareas() {
   const today = ymd(new Date())
-  const { tasks, add, save, toggle, remove } = useTasks()
+  const { tasks, add, save, toggle, remove } = useTasks(null)
   const [areas, setAreas] = useState<Area[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [showDone, setShowDone] = useState(false)
 
   useEffect(() => {
     loadAreas().then(setAreas)
-    loadProjects().then(setProjects)
+    loadProjects().then((ps) => setProjects(ps.filter((p) => p.status !== 'done')))
   }, [])
 
   if (!tasks) return null
@@ -37,7 +37,8 @@ export default function Tareas() {
           <small> pendientes</small>
         </div>
       </section>
-      <TaskForm id="new" areas={areas} projects={projects.filter((p) => p.status !== 'done')} submit="Añadir" initial={EMPTY_TASK} onSave={add} />
+      <p className="sm muted" style={{ marginTop: -24 }}>Tu lista personal. Las tareas de cada proyecto están en su ficha y aparecen en Hoy dentro de sus bloques.</p>
+      <TaskForm id="new" areas={areas} projects={[]} submit="Añadir" initial={EMPTY_TASK} onSave={add} />
       {groups.map((g) => (
         <section key={g.label} className="stack">
           <div className="between">

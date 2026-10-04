@@ -21,6 +21,12 @@ do $$ begin
 exception when foreign_key_violation then null;
 end $$;
 
+-- b puede asignar sus proyectos a sus áreas
+insert into public.projects (name, area_id) values ('Proyecto de b', 'trabajo');
+do $$ begin
+  assert (select area_id from public.project_summary) = 'trabajo', 'project_summary debería incluir area_id';
+end $$;
+
 -- b no puede escribir filas a nombre de a
 do $$ begin
   insert into public.notes (user_id, title) values ((select id from auth.users where email = 'a@x.es'), 'falsa');
@@ -49,7 +55,7 @@ reset role;
 
 select public.as_user('b@x.es');
 do $$ begin
-  assert (select count(*) from public.project_summary) = 0, 'b no debería ver proyectos de a';
+  assert (select array_agg(name) from public.project_summary) = array['Proyecto de b'], 'b debería ver solo su proyecto';
 end $$;
 reset role;
 

@@ -27,7 +27,7 @@ export type Task = { id: string; title: string; area_id: string | null; project_
 export type Note = { id: string; title: string; body: string; pinned: boolean; updated_at: string }
 export type Reminder = { id: string; title: string; remind_at: string; done: boolean }
 export type ProjectStatus = 'active' | 'paused' | 'done'
-export type Project = { id: string; name: string; client: string; status: ProjectStatus; due_date: string | null; created_at: string }
+export type Project = { id: string; name: string; client: string; area_id: string | null; status: ProjectStatus; due_date: string | null; created_at: string }
 /** Fila de la vista project_summary: el proyecto con sus totales. */
 export type ProjectSummary = Project & { minutes: number; open_tasks: number }
 export const PROJECT_STATUS: Record<ProjectStatus, string> = { active: 'Activo', paused: 'En pausa', done: 'Terminado' }
@@ -68,6 +68,12 @@ export const hours = (min: number) => {
   const h = Math.round((min / 60) * 10) / 10
   return String(h).replace('.', ',')
 }
+/** Vencimiento de una tarea: "atrasada · 12 oct", "hoy", "12 oct" o null si no tiene fecha. */
+export const dueLabel = (t: Pick<Task, 'due_date' | 'done'>, today: string) => {
+  if (!t.due_date) return null
+  if (t.due_date < today && !t.done) return `atrasada · ${dateLabel(t.due_date)}`
+  return t.due_date === today ? 'hoy' : dateLabel(t.due_date)
+}
 export const duration = (min: number) => (min < 60 ? `${min} min` : `${hours(min)} h`)
 export const clock = (min: number) => {
   const s = Math.floor(min * 60)
@@ -99,3 +105,10 @@ export async function loadProjects() {
   const { data } = await supabase.from('projects').select('*').order('name')
   return (data ?? []) as Project[]
 }
+
+/**
+ * Proyectos cuyo trabajo toca en un bloque: el suyo si tiene proyecto asignado; si no,
+ * los proyectos activos de su área (un bloque genérico como «Guarapo Media: proyectos»).
+ */
+export const projectsForBlock = (b: Pick<Block, 'project_id' | 'area_id'>, projects: Project[]) =>
+  b.project_id ? projects.filter((p) => p.id === b.project_id) : projects.filter((p) => p.status === 'active' && p.area_id === b.area_id)

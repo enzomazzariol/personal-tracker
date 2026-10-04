@@ -27,12 +27,15 @@ create table public.projects (
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   name text not null check (name <> ''),
   client text not null default '',
+  area_id text,
   status text not null default 'active' check (status in ('active', 'paused', 'done')),
   due_date date,
   created_at timestamptz not null default now(),
-  unique (id, user_id)
+  unique (id, user_id),
+  foreign key (user_id, area_id) references public.areas (user_id, id)
 );
 create index projects_user_idx on public.projects (user_id);
+create index projects_user_area_idx on public.projects (user_id, area_id);
 
 create table public.blocks (
   id uuid primary key default gen_random_uuid(),

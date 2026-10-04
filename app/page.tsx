@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Check from '@/components/Check'
+import BlockProjectTasks from '@/components/BlockProjectTasks'
 import {
-  supabase, Block, Task, Reminder, Week, Area,
-  ymd, mondayOf, loadWeekBlocks, loadWeek, loadAreas,
+  supabase, Block, Task, Reminder, Week, Area, Project,
+  ymd, mondayOf, loadWeekBlocks, loadWeek, loadAreas, loadProjects, projectsForBlock, dueLabel,
   DAYS, MONTHS, hm, plannedMin, doneMin, runningMin, hours, duration, clock,
 } from '@/lib/db'
 
@@ -13,7 +14,11 @@ export default function Hoy() {
   const [blocks, setBlocks] = useState<Block[] | null>(null)
   const [week, setWeek] = useState<Week | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  /** Tareas personales (sin proyecto) para hoy o sin fecha. */
   const [tasks, setTasks] = useState<Task[]>([])
+  /** Tareas abiertas de todos los proyectos: salen en su bloque o, si vencen, en la lista. */
+  const [projectTasks, setProjectTasks] = useState<Task[]>([])
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [picked, setPicked] = useState<string | null>(null)
   const [capture, setCapture] = useState('')
@@ -26,17 +31,22 @@ export default function Hoy() {
   const load = useCallback(async () => {
     const end = new Date()
     end.setHours(23, 59, 59, 999)
-    const [b, w, a, t, r] = await Promise.all([
+    const openTasks = () => supabase.from('tasks').select('*').eq('done', false)
+    const [b, w, a, p, t, pt, r] = await Promise.all([
       loadWeekBlocks(monday),
       loadWeek(monday),
       loadAreas(),
-      supabase.from('tasks').select('*').eq('done', false).or(`due_date.is.null,due_date.lte.${today}`).order('due_date', { nullsFirst: false }).order('created_at').limit(12),
+      loadProjects(),
+      openTasks().is('project_id', null).or(`due_date.is.null,due_date.lte.${today}`).order('due_date', { nullsFirst: false }).order('created_at').limit(12),
+      openTasks().not('project_id', 'is', null).order('due_date', { nullsFirst: false }).order('created_at').limit(200),
       supabase.from('reminders').select('*').eq('done', false).lte('remind_at', end.toISOString()).order('remind_at'),
     ])
     setBlocks(b)
     setWeek(w)
     setAreas(a)
+    setProjects(p)
     setTasks((t.data ?? []) as Task[])
+    setProjectTasks((pt.data ?? []) as Task[])
     setReminders((r.data ?? []) as Reminder[])
   }, [monday, today])
 
@@ -59,6 +69,12 @@ export default function Hoy() {
   const others = todays.filter((b) => b.id !== current?.id)
   const sum = (list: Block[], f: (b: Block) => number) => list.reduce((s, b) => s + f(b), 0)
   const areaName = (id: string) => areas.find((a) => a.id === id)?.name ?? id
+  const projectName = (id: string | null) => projects.find((p) => p.id === id)?.name
+  const blockProjects = current ? projectsForBlock(current, projects) : []
+  const inBlock = (t: Task) => blockProjects.some((p) => p.id === t.project_id)
+  // La lista: tareas personales y las de proyecto que vencen, salvo las que ya están en la tarjeta.
+  const dueProjectTasks = projectTasks.filter((t) => t.due_date && t.due_date <= today && !inBlock(t))
+  const listTasks = [...dueProjectTasks, ...tasks]
 
   async function patch(b: Block, changes: Partial<Block>) {
     setBlocks((bs) => bs!.map((x) => (x.id === b.id ? { ...x, ...changes } : x)))
@@ -83,6 +99,7 @@ export default function Hoy() {
   }
   async function doneTask(t: Task) {
     setTasks((ts) => ts.filter((x) => x.id !== t.id))
+    setProjectTasks((ts) => ts.filter((x) => x.id !== t.id))
     await supabase.from('tasks').update({ done: true, done_at: new Date().toISOString() }).eq('id', t.id)
   }
   async function doneReminder(r: Reminder) {
@@ -171,6 +188,7 @@ export default function Hoy() {
                 ))}
               </div>
             )}
+            <BlockProjectTasks projects={blockProjects} tasks={projectTasks} today={today} onDone={doneTask} />
             {current.why && <p className="sm dim">{current.why}</p>}
             {current.status === 'pending' ? (
               <div className="between" style={{ flexWrap: 'wrap' }}>
@@ -225,7 +243,7 @@ export default function Hoy() {
           <section className="stack">
             <div className="between">
               <span className="label">Tareas y recordatorios</span>
-              <span className="mono muted">{tasks.length + reminders.length}</span>
+              <span className="mono muted">{listTasks.length + reminders.length}</span>
             </div>
             <div className="list">
               {reminders.map((r) => (
@@ -238,14 +256,14 @@ export default function Hoy() {
                   </span>
                 </div>
               ))}
-              {tasks.map((t) => (
+              {listTasks.map((t) => (
                 <div key={t.id} className="item">
                   <Check on={false} label="Marcar tarea como hecha" onClick={() => doneTask(t)} />
                   <span className="sm grow">{t.title}</span>
-                  {t.due_date && t.due_date < today && <span className="mono muted">atrasada</span>}
+                  <span className="mono muted" style={{ textAlign: 'right' }}>{[projectName(t.project_id), t.due_date && t.due_date <= today ? dueLabel(t, today) : null].filter(Boolean).join(' · ')}</span>
                 </div>
               ))}
-              {tasks.length + reminders.length === 0 && <p className="empty">Nada pendiente para hoy.</p>}
+              {listTasks.length + reminders.length === 0 && <p className="empty">Nada pendiente para hoy.</p>}
             </div>
           </section>
 

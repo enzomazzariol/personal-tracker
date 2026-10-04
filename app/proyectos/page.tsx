@@ -3,23 +3,25 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import ProjectForm, { EMPTY_PROJECT, ProjectDraft, toProjectRow } from '@/components/ProjectForm'
-import { supabase, ProjectSummary, ymd, dateLabel, hours } from '@/lib/db'
+import { supabase, Area, ProjectSummary, ymd, loadAreas, dateLabel, hours } from '@/lib/db'
 
-/** "Cliente · entrega 12 oct · 3,5 h · 2 tareas" */
-function meta(p: ProjectSummary, today: string) {
+/** "Guarapo Media · Cliente · entrega 12 oct · 3,5 h · 2 tareas" */
+function meta(p: ProjectSummary, areas: Area[], today: string) {
   const due = p.due_date && (p.due_date < today && p.status !== 'done' ? `atrasado · ${dateLabel(p.due_date)}` : `entrega ${dateLabel(p.due_date)}`)
   const tasks = p.open_tasks ? `${p.open_tasks} ${p.open_tasks === 1 ? 'tarea' : 'tareas'}` : null
-  return [p.client, due, `${hours(p.minutes)} h`, tasks].filter(Boolean).join(' · ')
+  return [areas.find((a) => a.id === p.area_id)?.name, p.client, due, `${hours(p.minutes)} h`, tasks].filter(Boolean).join(' · ')
 }
 
 export default function Proyectos() {
   const today = ymd(new Date())
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null)
+  const [areas, setAreas] = useState<Area[]>([])
   const [showDone, setShowDone] = useState(false)
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('project_summary').select('*').order('due_date', { nullsFirst: false }).order('name')
+    const [{ data }, a] = await Promise.all([supabase.from('project_summary').select('*').order('due_date', { nullsFirst: false }).order('name'), loadAreas()])
     setProjects((data ?? []) as ProjectSummary[])
+    setAreas(a)
   }, [])
   useEffect(() => {
     load()
@@ -40,7 +42,7 @@ export default function Proyectos() {
   const row = (p: ProjectSummary) => (
     <Link key={p.id} href={`/proyectos/${p.id}`} className="item between">
       <span className="grow">{p.name}</span>
-      <span className="mono muted" style={{ textAlign: 'right' }}>{meta(p, today)}</span>
+      <span className="mono muted" style={{ textAlign: 'right' }}>{meta(p, areas, today)}</span>
     </Link>
   )
 
@@ -53,7 +55,7 @@ export default function Proyectos() {
           <small> activos</small>
         </div>
       </section>
-      <ProjectForm id="new" initial={EMPTY_PROJECT} submit="Añadir" onSave={add} />
+      <ProjectForm id="new" areas={areas} initial={EMPTY_PROJECT} submit="Añadir" onSave={add} />
       {groups.map((g) => (
         <section key={g.label} className="stack">
           <div className="between">

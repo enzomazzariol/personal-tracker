@@ -72,7 +72,7 @@ export default function Proyecto() {
       <section className="stack" style={{ gap: 16 }}>
         <Link className="link" href="/proyectos" style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center' }}>← Proyectos</Link>
         <h1 className="title">{project.name}</h1>
-        {project.client && <span className="label">{project.client}</span>}
+        <span className="label">{[areas.find((a) => a.id === project.area_id)?.name, project.client].filter(Boolean).join(' · ')}</span>
       </section>
 
       <section className="tiles three">
@@ -124,7 +124,7 @@ export default function Proyecto() {
               <span className="mono muted">{b.status === 'done' ? duration(b.actual_minutes) : b.status === 'skipped' ? 'saltado' : `plan ${duration(plannedMin(b))}`}</span>
             </div>
           ))}
-          {blocks.length === 0 && <p className="empty">Ningún bloque asignado. Asígnalos al crearlos en Semana.</p>}
+          {blocks.length === 0 && <p className="empty">Ningún bloque asignado. Asígnalos al crearlos en Semana; los bloques del área del proyecto también muestran sus tareas en Hoy.</p>}
         </div>
       </section>
 
@@ -132,8 +132,9 @@ export default function Proyecto() {
         <span className="label">Datos del proyecto</span>
         <ProjectForm
           id="edit"
+          areas={areas}
           submit="Guardar"
-          initial={{ name: project.name, client: project.client, due_date: project.due_date ?? '' }}
+          initial={{ name: project.name, client: project.client, area_id: project.area_id ?? '', due_date: project.due_date ?? '' }}
           onSave={(d: ProjectDraft) => update(toProjectRow(d))}
         />
       </section>

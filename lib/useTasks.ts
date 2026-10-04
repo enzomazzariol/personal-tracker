@@ -14,13 +14,16 @@ const toRow = (d: TaskDraft) => ({
   due_date: d.due_date || null,
 })
 
-/** Tareas del usuario (o solo las de un proyecto) con sus operaciones. Escrituras optimistas salvo al crear. */
-export function useTasks(projectId?: string) {
+/**
+ * Tareas de un proyecto, o las personales (sin proyecto) si `projectId` es null, con sus operaciones.
+ * Escrituras optimistas salvo al crear.
+ */
+export function useTasks(projectId: string | null) {
   const [tasks, setTasks] = useState<Task[] | null>(null)
 
   const load = useCallback(async () => {
-    let query = supabase.from('tasks').select('*')
-    if (projectId) query = query.eq('project_id', projectId)
+    const all = supabase.from('tasks').select('*')
+    const query = projectId ? all.eq('project_id', projectId) : all.is('project_id', null)
     const { data } = await query.order('due_date', { nullsFirst: false }).order('created_at', { ascending: false }).limit(300)
     setTasks((data ?? []) as Task[])
   }, [projectId])
@@ -38,7 +41,7 @@ export function useTasks(projectId?: string) {
     const row = toRow(d)
     patch(id, row)
     await supabase.from('tasks').update(row).eq('id', id)
-    if (projectId && row.project_id !== projectId) load()
+    if (row.project_id !== projectId) load() // ha cambiado de lista
   }
   const toggle = async (t: Task) => {
     const changes = { done: !t.done, done_at: t.done ? null : new Date().toISOString() }

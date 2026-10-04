@@ -5,17 +5,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, configured, DAYS_SHORT, MONTHS } from '@/lib/db'
+import { NAV, MOBILE_ITEMS, MORE_GROUPS, isIn } from '@/lib/nav'
 import Login from './Login'
-
-const NAV = [
-  { href: '/', label: 'Hoy' },
-  { href: '/semana', label: 'Semana' },
-  { href: '/tareas', label: 'Tareas' },
-  { href: '/notas', label: 'Notas' },
-  { href: '/proyectos', label: 'Proyectos', deskOnly: true },
-  { href: '/recordatorios', label: 'Recordatorios', deskOnly: true },
-  { href: '/revision', label: 'Revisión', deskOnly: true },
-]
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
@@ -37,9 +28,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   if (!session) return <Login />
 
   const now = new Date()
-  const isIn = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`))
-  const current = (href: string) => (isIn(href) ? 'page' : undefined)
-  const inMore = isIn('/mas') || NAV.some((n) => n.deskOnly && isIn(n.href))
+  const current = (href: string) => (isIn(path, href) ? 'page' : undefined)
+  const inMore = isIn(path, '/mas') || MORE_GROUPS.some((g) => g.items.some((i) => isIn(path, i.href)))
 
   return (
     <div className="shell">
@@ -49,19 +39,24 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           {DAYS_SHORT[now.getDay()]} {String(now.getDate()).padStart(2, '0')} {MONTHS[now.getMonth()]}
         </span>
         <nav aria-label="Secciones" className="mono">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} aria-current={current(n.href)}>
-              {n.label}
-            </Link>
+          {NAV.map((g) => (
+            <div key={g.label} className="navgroup" role="group" aria-label={g.label}>
+              <span className="navlabel" aria-hidden="true">{g.label}</span>
+              {g.items.map((i) => (
+                <Link key={i.href} href={i.href} aria-current={current(i.href)}>
+                  {i.label}
+                </Link>
+              ))}
+            </div>
           ))}
           <button onClick={() => supabase.auth.signOut()}>Salir</button>
         </nav>
       </header>
       <main className="main">{children}</main>
       <nav aria-label="Secciones" className="bottomnav mono">
-        {NAV.filter((n) => !n.deskOnly).map((n) => (
-          <Link key={n.href} href={n.href} aria-current={current(n.href)}>
-            {n.label}
+        {MOBILE_ITEMS.map((i) => (
+          <Link key={i.href} href={i.href} aria-current={current(i.href)}>
+            {i.label}
           </Link>
         ))}
         <Link href="/mas" aria-current={inMore ? 'page' : undefined}>

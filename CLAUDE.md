@@ -20,6 +20,7 @@ Variables en `.env.local` (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL` y `NE
 - Todas las páginas son componentes de cliente (`'use client'`) que hablan con Supabase directamente desde el navegador con `supabase-js`. No hay rutas de API, server actions ni middleware.
 - Multiusuario. La seguridad la pone la base de datos: cada fila tiene `user_id` (por defecto `auth.uid()`) y RLS en todas las tablas.
 - `components/Shell.tsx` gestiona la sesión (muestra `Login` si no hay) y la navegación: barra inferior en móvil, menú superior desde 900 px.
+- Las secciones se definen una sola vez en `lib/nav.ts`, agrupadas por propósito: Plan (Hoy, Semana, Revisión), Trabajo (Tareas, Proyectos) y Apuntes (Notas, Recordatorios). La cabecera, la barra inferior y «Más» salen de ahí.
 - `lib/db.ts` contiene el cliente, los tipos de cada tabla y las utilidades de fechas y horas. Reutilízalas; no dupliques.
 - Lo que usan varias páginas va en un componente (`components/TaskForm.tsx`, `TaskRow.tsx`, `ProjectForm.tsx`) o en un hook (`lib/useTasks.ts`), no copiado.
 - Los estilos están en `app/globals.css`, sin Tailwind ni librerías de componentes.
@@ -36,6 +37,7 @@ app/mas/                 Menú "Más" (solo móvil)
 components/              Shell, Login, Check, Veil, formularios y filas compartidas
 lib/db.ts                Cliente, tipos, utilidades
 lib/useTasks.ts          Datos y operaciones de tareas
+lib/nav.ts               Secciones y grupos de la navegación
 supabase/schema.sql      Esquema completo y permisos
 supabase/migrations/     Cambios posteriores al esquema inicial
 supabase/tests/          Prueba del esquema en Docker (run.sh)
@@ -72,7 +74,7 @@ El repositorio es público.
 
 1. Define las tablas en una migración y actualiza `schema.sql`, `lib/db.ts` y `docs/data-model.md`. Pasa la prueba del esquema.
 2. Crea `app/<seccion>/page.tsx` siguiendo el patrón de `app/proyectos/` (lista con alta y ficha en `[id]`).
-3. Añádela a `NAV` en `components/Shell.tsx`. En móvil la barra inferior tiene cinco huecos; las secciones nuevas van con `deskOnly: true` y se enlazan desde `app/mas/page.tsx`.
+3. Añádela a su grupo en `lib/nav.ts`. En móvil la barra inferior tiene cinco huecos (cuatro secciones con `mobile: true` y «Más»); las demás aparecen solas en «Más».
 4. Usa las clases existentes de `globals.css` antes de crear otras nuevas.
 5. Comprueba a 390 px y a 1280 px, y que `npm run build` pasa.
 6. Marca la sección como hecha en `docs/spec.md`.

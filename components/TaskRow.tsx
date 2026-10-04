@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Check from './Check'
 import TaskForm from './TaskForm'
-import { Area, Project, Task, dateLabel } from '@/lib/db'
+import { Area, Project, Task, dueLabel } from '@/lib/db'
 import { TaskDraft } from '@/lib/useTasks'
 
 type Props = {
@@ -16,12 +16,6 @@ type Props = {
   onToggle: (t: Task) => void
   onSave: (id: string, d: TaskDraft) => void
   onRemove: (t: Task) => void
-}
-
-function dueLabel(t: Task, today: string) {
-  if (!t.due_date) return null
-  if (t.due_date < today && !t.done) return `atrasada · ${dateLabel(t.due_date)}`
-  return t.due_date === today ? 'hoy' : dateLabel(t.due_date)
 }
 
 /** Una tarea en una lista: marcar, editar al pulsar el título y borrar. */

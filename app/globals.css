@@ -50,12 +50,16 @@ h1.title { font-size: clamp(40px, 11vw, 94px); line-height: 0.9; font-weight: 30
 
 @media (min-width: 900px) {
   .topbar { height: 66px; padding: 0 max(48px, calc((100% - 1078px) / 2 + 48px)); }
-  .topbar nav { display: flex; align-items: center; gap: 28px; }
+  .topbar nav { display: flex; align-items: center; gap: 40px; }
+  .navgroup { display: flex; align-items: center; gap: 20px; }
+  .navlabel { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.35); }
   .topbar nav a, .topbar nav button { min-height: 44px; display: flex; align-items: center; background: none; border: 0; padding: 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; transition: color var(--ease); }
   .topbar nav a:hover, .topbar nav button:hover, .topbar nav a[aria-current='page'] { color: var(--fg); }
   .bottomnav, .mob { display: none !important; }
   .main { padding: 46px 48px 68px; }
 }
+
+@media (min-width: 900px) and (max-width: 1179px) { .navlabel { display: none; } .topbar nav { gap: 32px; } }
 
 /* tiles */
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
