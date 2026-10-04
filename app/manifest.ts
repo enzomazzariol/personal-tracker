@@ -1,0 +1,13 @@
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Tracker',
+    short_name: 'Tracker',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#101010',
+    theme_color: '#101010',
+    icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }],
+  }
+}
