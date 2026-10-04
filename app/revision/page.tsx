@@ -112,7 +112,7 @@ function Revision() {
         <label className="label" htmlFor="rev-notes" style={{ marginTop: 12 }}>Qué cambiarías la semana que viene</label>
         <textarea id="rev-notes" className="textarea" rows={5} value={notes} onChange={(e) => setNotes(e.target.value)} />
         <div className="row">
-          <button className="btn light">Guardar revisión</button>
+          <button className="btn primary">Guardar revisión</button>
           <span className="mono green" role="status">{status}</span>
         </div>
         <p className="sm muted">Con la revisión guardada, pídele a Claude la semana siguiente y aparecerá aquí.</p>

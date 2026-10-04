@@ -51,12 +51,12 @@ export default function Notas() {
     <>
       <section className="between" style={{ alignItems: 'flex-end' }}>
         <h1 className="title">Notas</h1>
-        <button className="btn light" onClick={create}>Nueva nota</button>
+        <button className="btn primary" onClick={create}>Nueva nota</button>
       </section>
       <div className="notes">
         <div className="list mob-hide" style={{ display: note ? 'none' : 'block' }}>
           {notes.map((n) => (
-            <button key={n.id} className="item" onClick={() => { setOpenId(n.id); setStatus('') }} aria-current={n.id === openId ? 'true' : undefined} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '10px 0', color: n.id === openId ? 'var(--chalk)' : undefined }}>
+            <button key={n.id} className="item" onClick={() => { setOpenId(n.id); setStatus('') }} aria-current={n.id === openId ? 'true' : undefined} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '10px 0', color: n.id === openId ? 'var(--muted)' : undefined }}>
               <span className="row" style={{ gap: 8 }}>
                 {n.pinned && <span className="dot" />}
                 <span>{n.title || 'Sin título'}</span>

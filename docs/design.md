@@ -1,6 +1,6 @@
 # Diseño
 
-Referencia: una superficie de control negra donde el único objeto brillante es el trabajo en curso. Tema oscuro siempre. La profundidad sale del contraste y del espacio, nunca de sombras.
+Tema oscuro siempre. Tipografía y estructura de monopo saigon (ficha en `docs/referencia-monopo.md`); fondo Dark Veil de React Bits. La interfaz es blanco sobre negro y nunca tiene color: el único color es el velo morado del fondo.
 
 ## Colores
 
@@ -8,75 +8,71 @@ Definidos como variables en `app/globals.css`.
 
 | Variable | Valor | Uso |
 |---|---|---|
-| `--canvas` | `#101010` | Fondo de toda la app |
-| `--lift` | `#1d1a18` | Superficies elevadas, campos, líneas finas entre filas |
-| `--stroke` | `#3d3a39` | Bordes de campos y botones fantasma, pista de las barras |
-| `--mid` | `#4d4947` | Texto secundario dentro de la tarjeta clara |
-| `--muted` | `#8a8380` | Texto apagado |
-| `--pale` | `#b8b3b0` | Etiquetas y texto terciario |
-| `--bone` | `#eeeeee` | Texto principal y tarjeta clara |
-| `--chalk` | `#fafafa` | Botón claro |
-| `--orange` | `#ee6018` | Estado en vivo: bloque en curso, recordatorio vencido |
-| `--green` | `#a0ca92` | Estado positivo: hecho, guardado |
+| `--bg` | `#000000` | Fondo base (debajo del velo), texto de la tarjeta clara |
+| `--fg` | `#ffffff` | Texto principal, bordes de acción, tarjeta clara, rellenos de estado activo |
+| `--muted` | `rgba(255,255,255,.6)` | Texto secundario, etiquetas, ayuda |
+| `--line` | `rgba(255,255,255,.14)` | Líneas finas entre filas y bordes de paneles |
+| `--line-strong` | `rgba(255,255,255,.35)` | Bordes de botones secundarios y campos |
+| `--on-light-muted` | `rgba(0,0,0,.6)` | Texto secundario dentro de la tarjeta clara |
+| `--on-light-line` | `rgba(0,0,0,.15)` | Líneas dentro de la tarjeta clara |
 
 Reglas:
 
-- El naranja y el verde son solo para datos y estado. Nunca en botones, fondos ni textos grandes.
-- No se añaden más colores de acento.
-- La tarjeta clara (`--bone` sobre `--canvas`) se reserva para una sola cosa por pantalla: el bloque actual en Hoy, el día de hoy en Semana.
+- Interfaz solo en blanco, negro y grises. No se añaden colores de acento.
+- El estado se distingue con texto, peso o inversión (blanco sobre negro ↔ negro sobre blanco), nunca con color.
+- Fondo: `components/Veil.tsx`, el shader Dark Veil con WebGL directo, fijo detrás de toda la app a media resolución (`SCALE`). Se queda quieto con `prefers-reduced-motion`. Sin WebGL, queda negro.
+- La tarjeta clara (`.card`) es el único objeto brillante por pantalla: el bloque actual en Hoy. El día de hoy en Semana usa la misma inversión.
 
 ## Tipografía
 
-- Geist en peso 400 para todo. Peso 500 solo si una etiqueta debe destacar en una superficie densa. Nunca 600 o más.
-- Geist Mono a 12 px, en mayúsculas, para etiquetas, horas, contadores y navegación (clases `.label` y `.mono`).
-- Tracking negativo que crece con el tamaño: 72 px a -2,88 px; 44 px a -1,1 px; 36 px a -1,12 px; 12 px a -0,24 px.
-- Interlineado entre 1 y 1,5. Sin serifas ni otras familias.
+- Manrope (sustituto gratuito de Roobert, Google Fonts) en 300 y 400. 300 para cifras y títulos grandes, 400 para todo lo demás. Nunca 600 o más por encima de 45 px.
+- Etiquetas a 12 px en mayúsculas con tracking 0,04 em (`.label`). Cifras con `tabular-nums` (`.mono`, `.big`, `.mid`).
+- Los títulos grandes llevan interlineado apretado (0,9) y tracking ligeramente negativo.
 
 | Uso | Tamaño |
 |---|---|
-| Título de página | 44 px en móvil, 72 px en escritorio (`h1.title`) |
-| Cifra grande | 36 px (`.big`) |
-| Cifra media | 24 px (`.mid`) |
-| Título de la tarjeta | 28 px en móvil, 36 px en escritorio |
-| Texto | 16 px |
+| Título de página | de 40 px a 94 px según ancho, peso 300 (`h1.title`) |
+| Título de la tarjeta | 39 px en móvil, 54 px en escritorio, peso 300 |
+| Cifra grande | 39 px, peso 300 (`.big`) |
+| Cifra media | 29 px, peso 300 (`.mid`) |
+| Texto | 16 px; cuerpo de nota 18 px |
 | Texto pequeño | 14 px (`.sm`) |
-| Etiqueta | 12 px mono |
+| Etiqueta | 12 px |
 
 ## Forma y espacio
 
-- Radios: 3 px en botones y campos, 10 px en tarjetas y paneles, 20 px solo en paneles muy grandes.
-- Sin sombras, brillos, desenfoques ni degradados.
-- Espaciado en múltiplos de 8. Entre secciones, 32 px.
-- Las listas se separan con líneas de 1 px en `--lift`, sin tarjetas alrededor.
-- Bordes de 1 px.
+- Radios: 0 en todo, salvo botones y grupos segmentados, que son píldora (`--pill`, 75 px). Nada intermedio.
+- Sin sombras ni elevación. Los planos se separan con líneas de 1 px o con inversión.
+- Campos: solo línea inferior. El área de texto lleva borde completo.
+- Base de 4 px. Entre secciones, 46 px. Relleno de tarjeta, 34 px en escritorio.
 
 ## Movimiento
 
-Transiciones de 0,15 s con `cubic-bezier(0.4, 0, 0.2, 1)` (variable `--ease`), solo en color, fondo y borde. Sin rebotes, parallax ni animaciones de entrada.
+`--ease`: 0,4 s con `cubic-bezier(0.19, 1, 0.22, 1)` para color, fondo y borde. El velo se mueve despacio (`SPEED` en `Veil.tsx`).
 
 ## Disposición
 
-- Móvil: cabecera fina, contenido en una columna con 16 px de margen, barra inferior fija con cinco secciones.
-- Escritorio (desde 900 px): columna lateral de 232 px con la navegación y la meta de la semana; contenido con 48 px de margen y 1200 px de ancho máximo.
+- Móvil: cabecera fina con la marca y la fecha, una columna con 16 px de margen, barra inferior fija con cinco secciones.
+- Escritorio (desde 900 px): cabecera de 66 px con la marca a la izquierda y el menú a la derecha; contenido centrado con 1078 px de ancho máximo.
 - `.mob` se muestra solo en móvil y `.desk` solo en escritorio.
 
 ## Clases disponibles
 
 | Grupo | Clases |
 |---|---|
-| Texto | `.label`, `.mono`, `.sm`, `.muted`, `.green`, `.strike`, `.big`, `.mid` |
+| Texto | `.label`, `.mono`, `.sm`, `.muted`, `.green` (hecho, ya sin color), `.strike`, `.big`, `.mid` |
 | Disposición | `.row`, `.between`, `.stack`, `.stack-lg`, `.grow`, `.cols` |
-| Superficies | `.card` (clara), `.panel` (borde fino), `.tiles` y `.tile`, `.bar` |
+| Superficies | `.veil` (lienzo del fondo), `.card` (clara), `.panel` (borde fino), `.tiles` y `.tile`, `.bar` |
 | Listas | `.list`, `.item`, `.time`, `.empty` |
-| Controles | `.btn` con `.light`, `.dark` o `.ghost`; `.link`; `.x`; `.check`; `.input`, `.select`, `.textarea`; `.form`; `.seg` |
-| Estado | `.dot` (punto naranja) |
+| Controles | `.btn` con `.primary` o `.ghost`; `.link`; `.x`; `.check`; `.input`, `.select`, `.textarea`; `.form`; `.seg` |
+| Estado | `.dot` (punto del color del texto) |
 | Accesibilidad | `.sr` (solo para lectores de pantalla) |
 
 ## Botones
 
-- Acción principal sobre fondo oscuro: `.btn.light`.
-- Acción principal dentro de la tarjeta clara: `.btn.dark`.
-- Acción secundaria: `.btn.ghost`.
-- Acción neutra sobre fondo oscuro: `.btn`.
+Todos son píldoras transparentes con borde de 1 px.
+
+- Acción principal: `.btn.primary` (borde blanco; se rellena de blanco al pasar por encima). Dentro de `.card`, en negro.
+- Acción secundaria: `.btn.ghost` o `.btn` (borde gris).
 
 Altura mínima de 44 px en todo lo que se pulsa.

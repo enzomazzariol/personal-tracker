@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  supabase, Block, Week, Area,
-  ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas,
+  supabase, Block, Week, Area, Project,
+  ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, loadProjects,
   dayLabel, dateLabel, hm, plannedMin, doneMin, hours,
 } from '@/lib/db'
 
@@ -16,14 +16,16 @@ export default function Semana() {
   const [blocks, setBlocks] = useState<Block[] | null>(null)
   const [week, setWeek] = useState<Week | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
-  const [form, setForm] = useState({ date: today, start: '11:00', end: '12:00', area: 'dev', title: '' })
+  const [projects, setProjects] = useState<Project[]>([])
+  const [form, setForm] = useState({ date: today, start: '11:00', end: '12:00', area: '', project: '', title: '' })
   const now = Date.now()
 
   const load = useCallback(async () => {
-    const [b, w, a] = await Promise.all([loadWeekBlocks(monday), loadWeek(monday), loadAreas()])
+    const [b, w, a, p] = await Promise.all([loadWeekBlocks(monday), loadWeek(monday), loadAreas(), loadProjects()])
     setBlocks(b)
     setWeek(w)
     setAreas(a)
+    setProjects(p.filter((x) => x.status !== 'done'))
   }, [monday])
   useEffect(() => {
     load()
@@ -44,8 +46,9 @@ export default function Semana() {
   }
   async function addBlock(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim() || form.end <= form.start) return
-    await supabase.from('blocks').insert({ date: form.date, start_time: form.start, end_time: form.end, area_id: form.area, title: form.title.trim(), tag: '' })
+    const area = form.area || areas[0]?.id
+    if (!form.title.trim() || form.end <= form.start || !area) return
+    await supabase.from('blocks').insert({ date: form.date, start_time: form.start, end_time: form.end, area_id: area, project_id: form.project || null, title: form.title.trim(), tag: '' })
     setForm({ ...form, title: '' })
     load()
   }
@@ -141,12 +144,23 @@ export default function Semana() {
           <label className="sr" htmlFor="b-end">Fin</label>
           <input id="b-end" className="input" type="time" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} />
           <label className="sr" htmlFor="b-area">Área</label>
-          <select id="b-area" className="select" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })}>
+          <select id="b-area" className="select" value={form.area || areas[0]?.id} onChange={(e) => setForm({ ...form, area: e.target.value })}>
             {areas.map((a) => (
               <option key={a.id} value={a.id}>{a.name}</option>
             ))}
           </select>
-          <button className="btn light">Añadir</button>
+          {projects.length > 0 && (
+            <>
+              <label className="sr" htmlFor="b-project">Proyecto</label>
+              <select id="b-project" className="select" value={form.project} onChange={(e) => setForm({ ...form, project: e.target.value })}>
+                <option value="">Sin proyecto</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </>
+          )}
+          <button className="btn primary">Añadir</button>
         </form>
       </section>
     </>

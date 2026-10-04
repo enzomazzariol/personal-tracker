@@ -33,22 +33,17 @@ export default function Login() {
   return (
     <div className="login">
       <form onSubmit={submit}>
-        <span className="mono" style={{ textTransform: 'uppercase' }}>Tracker</span>
-        <div className="card">
-          <div className="row" style={{ gap: 8 }}>
-            <span className="dot" />
-            <span className="label">{mode === 'in' ? 'Entrar' : 'Crear cuenta'}</span>
-          </div>
-          <label className="sr" htmlFor="email">Correo</label>
-          <input id="email" className="input" type="email" required autoComplete="email" placeholder="Correo" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <label className="sr" htmlFor="password">Contraseña</label>
-          <input id="password" className="input" type="password" required minLength={8} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
-          {err && <p className="err">{err}</p>}
-          {msg && <p className="sm">{msg}</p>}
-          <button className="btn dark" disabled={busy}>
-            {mode === 'in' ? 'Entrar' : 'Crear cuenta'}
-          </button>
-        </div>
+        <h1 className="title">tracker</h1>
+        <span className="label">{mode === 'in' ? 'Entrar' : 'Crear cuenta'}</span>
+        <label className="sr" htmlFor="email">Correo</label>
+        <input id="email" className="input" type="email" required autoComplete="email" placeholder="Correo" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label className="sr" htmlFor="password">Contraseña</label>
+        <input id="password" className="input" type="password" required minLength={8} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {err && <p className="err" role="alert">{err}</p>}
+        {msg && <p className="sm" role="status">{msg}</p>}
+        <button className="btn primary" disabled={busy}>
+          {mode === 'in' ? 'Entrar' : 'Crear cuenta'}
+        </button>
         <button type="button" className="link" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setErr('') }}>
           {mode === 'in' ? 'Primera vez: crear cuenta' : 'Ya tengo cuenta: entrar'}
         </button>

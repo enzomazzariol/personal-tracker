@@ -6,7 +6,7 @@ Una sola app que, al abrirla, dice qué toca hoy y permite registrar todo lo dem
 
 ## Principios
 
-- Un solo usuario. No hay equipos, compartir ni roles.
+- Multiusuario: cada cuenta ve solo sus datos. No hay equipos, compartir ni roles.
 - Primero el móvil, y que funcione igual de bien en escritorio.
 - El plan semanal se compone de bloques con día, hora, área y tareas. El tiempo real se mide con el cronómetro de cada bloque.
 - El plan de cada semana se escribe directamente en la base de datos después de la revisión del domingo.
@@ -14,7 +14,7 @@ Una sola app que, al abrirla, dice qué toca hoy y permite registrar todo lo dem
 
 ## Áreas
 
-Empleo dev, Guarapo Media, Otros estudios, Lectura, Ejercicio y Colchón (hueco semanal para imprevistos o para recuperar un bloque). Viven en la tabla `areas` y se pueden cambiar sin tocar código.
+Cada cuenta empieza con Trabajo, Estudio, Lectura, Ejercicio y Colchón (hueco semanal para imprevistos o para recuperar un bloque). Viven en la tabla `areas`; todavía no hay pantalla para editarlas, se cambian desde la base de datos.
 
 ## Etapa 1: núcleo (hecha)
 
@@ -35,7 +35,7 @@ Los campos son una propuesta inicial; se ajustan al construir cada sección.
 
 | Sección | Qué hace | Datos previstos |
 |---|---|---|
-| Proyectos | Cada cliente o proyecto con sus tareas, horas dedicadas y fechas de entrega | `projects` (nombre, cliente, estado, entrega); `tasks.project_id`; `blocks.project_id` para sumar horas |
+| Proyectos (hecha) | Cada cliente o proyecto con sus tareas, horas dedicadas y fechas de entrega | `projects` (nombre, cliente, estado, entrega); `tasks.project_id`; `blocks.project_id` para sumar horas |
 | Ofertas | Registro de candidaturas | `job_applications` (empresa, puesto, enlace, fecha, estado: guardada, aplicada, entrevista, oferta, descartada; notas) |
 | Metas | Objetivos por trimestre o año con hitos y avance | `goals` (título, periodo, fecha límite, estado); `goal_milestones` (título, hecho) |
 | Lectura | Libros leídos y en curso, páginas por día, notas de cada libro | `books` (título, autor, páginas, estado, inicio, fin); `reading_log` (libro, fecha, páginas); `book_notes` |
@@ -53,11 +53,11 @@ Los campos son una propuesta inicial; se ajustan al construir cada sección.
 ## Más adelante
 
 - Dinero: gastos, ingresos y presupuesto. Se definirá a partir de una exportación de la app que se usa ahora.
-- Fondo animado Aurora (React Bits). Choca con la regla de diseño de no usar brillos, así que hay que decidir dónde va.
 - Mover un bloque no hecho al colchón con un toque.
 - Rachas de hábitos.
 - Notificaciones push.
+- Pantalla para crear, renombrar y ordenar áreas (necesaria antes de abrir la app a otras personas).
 
 ## Fuera de alcance
 
-Varios usuarios, compartir, modo sin conexión, apps nativas.
+Equipos, compartir, modo sin conexión, apps nativas.

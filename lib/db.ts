@@ -12,6 +12,7 @@ export type Block = {
   start_time: string
   end_time: string
   area_id: string
+  project_id: string | null
   tag: string
   title: string
   why: string
@@ -22,9 +23,14 @@ export type Block = {
 }
 export type Area = { id: string; name: string; sort: number }
 export type Week = { start_date: string; number: number; goal: string; wins: string[]; review_notes: string; reviewed_at: string | null }
-export type Task = { id: string; title: string; area_id: string | null; due_date: string | null; done: boolean; done_at: string | null; created_at: string }
+export type Task = { id: string; title: string; area_id: string | null; project_id: string | null; due_date: string | null; done: boolean; done_at: string | null; created_at: string }
 export type Note = { id: string; title: string; body: string; pinned: boolean; updated_at: string }
 export type Reminder = { id: string; title: string; remind_at: string; done: boolean }
+export type ProjectStatus = 'active' | 'paused' | 'done'
+export type Project = { id: string; name: string; client: string; status: ProjectStatus; due_date: string | null; created_at: string }
+/** Fila de la vista project_summary: el proyecto con sus totales. */
+export type ProjectSummary = Project & { minutes: number; open_tasks: number }
+export const PROJECT_STATUS: Record<ProjectStatus, string> = { active: 'Activo', paused: 'En pausa', done: 'Terminado' }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 export const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -88,4 +94,8 @@ export async function loadWeek(monday: string) {
 export async function loadAreas() {
   const { data } = await supabase.from('areas').select('*').order('sort')
   return (data ?? []) as Area[]
+}
+export async function loadProjects() {
+  const { data } = await supabase.from('projects').select('*').order('name')
+  return (data ?? []) as Project[]
 }
