@@ -103,6 +103,9 @@ button.item:hover { color: var(--muted); }
 .btn.primary:hover { background: var(--fg); color: var(--bg); }
 .btn.ghost { border-color: var(--line-strong); }
 .card .btn { border-color: rgba(0, 0, 0, 0.3); color: var(--bg); }
+.card .input { color: var(--bg); border-color: var(--on-light-line); color-scheme: light; }
+.card .input:focus { border-color: var(--bg); }
+.card .input::placeholder { color: var(--on-light-muted); }
 .card .btn:hover, .card .btn.primary { border-color: var(--bg); }
 .card .btn.primary:hover { background: var(--bg); color: var(--fg); }
 .btn:disabled { opacity: 0.5; cursor: default; }
@@ -170,3 +173,7 @@ button.item:hover { color: var(--muted); }
 .dialog:not([open]) { display: none; }
 .dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
 @media (min-width: 900px) { .dialog { padding: 34px; } }
+
+/* dos listas lado a lado en escritorio (Tareas) */
+.split { display: flex; flex-direction: column; gap: 46px; }
+@media (min-width: 900px) { .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 46px; align-items: start; } }

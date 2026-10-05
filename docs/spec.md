@@ -17,11 +17,13 @@ Una sola app que, al abrirla, dice qué toca hoy y permite registrar todo lo dem
 La app tiene dos propósitos y la navegación los separa:
 
 - **Plan**: cuándo trabajas y hacia dónde vas. Hoy, Semana y Revisión, con los bloques de tiempo, y Metas.
-- **Trabajo**: qué hay que hacer. Tareas (la lista personal, sin proyecto), Proyectos (cada uno con sus tareas) y Ofertas (búsqueda de empleo).
+- **Trabajo**: qué hay que hacer. Tareas (todas, en dos listas: cotidianas y de trabajo), Proyectos (cada uno con sus tareas) y Ofertas (búsqueda de empleo).
 - **Vida**: Lectura, Estudio y Diario.
 - **Apuntes**: Notas y Recordatorios.
 
-Los dos se unen en los bloques: la tarjeta del bloque en Hoy muestra las tareas abiertas de los proyectos que tocan en él (el proyecto asignado al bloque o, si no tiene, los proyectos activos de su área). Una tarea de proyecto aparece además en la lista de Hoy cuando vence hoy o está atrasada. Las tareas de proyecto no aparecen en Tareas.
+Los dos se unen en los bloques: la tarjeta del bloque en Hoy muestra las tareas abiertas de los proyectos que tocan en él (el proyecto asignado al bloque o, si no tiene, los proyectos activos de su área). Una tarea de proyecto aparece además en la lista de Hoy cuando vence hoy o está atrasada. Una tarea de proyecto es una sola tarea: aparece en Tareas (en la lista de trabajo) y en la ficha de su proyecto, y tacharla en un sitio la tacha en los dos.
+
+La misma idea sirve para el resto de secciones: según el tipo de su área (`areas.kind`), la tarjeta de un bloque de lectura muestra los libros en curso para apuntar páginas, y la de un bloque de estudio los temas en curso. Hoy enseña también los seguimientos de ofertas que tocan y, desde las 19:00, una invitación a escribir el diario. La revisión semanal resume lo que pasó en cada sección.
 
 ## Áreas
 
@@ -33,7 +35,7 @@ Cada cuenta empieza con Trabajo, Estudio, Lectura, Ejercicio y Colchón (hueco s
 |---|---|
 | Hoy | Bloque actual en tarjeta clara con sus tareas, cronómetro (empezar, pausar, terminar, saltar, reabrir), resto del día, tareas y recordatorios pendientes, captura rápida de tarea o nota, horas hechas contra planeadas de hoy y de la semana |
 | Semana | Horas por área, los siete días con el estado de cada bloque, cambio de estado con un toque, navegación entre semanas, alta de bloques |
-| Tareas | Bandeja sin fecha, tareas con fecha, hechas; área y fecha opcionales; edición y borrado |
+| Tareas | Dos listas, cotidianas y de trabajo, ordenadas por fecha; las de trabajo con área y proyecto opcionales; hechas plegadas; edición (incluido cambiar de lista) y borrado |
 | Notas | Título y cuerpo con guardado automático, fijar, borrar |
 | Recordatorios | Con fecha y hora; los vencidos aparecen en Hoy |
 | Revisión semanal | Bloques y horas por área, lo que quedó sin hacer, tres cosas que salieron bien y qué cambiar |
@@ -63,11 +65,11 @@ Se hacen por bloques, en orden. Cada bloque se cierra con build, pruebas y revis
 - [x] A3. Recuperar la contraseña.
 
 **Bloque B: secciones conectadas**
-- [ ] B1. Bloque de Lectura: el libro en curso y apuntar páginas desde la tarjeta.
-- [ ] B2. Bloque de Estudio: los temas en curso de su materia.
-- [ ] B3. Revisión semanal con datos de todas las secciones.
-- [ ] B4. Ofertas con fecha de seguimiento que aparece en Hoy.
-- [ ] B5. Diario desde Hoy al final del día.
+- [x] B1. Bloque de Lectura: el libro en curso y apuntar páginas desde la tarjeta.
+- [x] B2. Bloque de Estudio: los temas en curso de su materia.
+- [x] B3. Revisión semanal con datos de todas las secciones.
+- [x] B4. Ofertas con fecha de seguimiento que aparece en Hoy.
+- [x] B5. Diario desde Hoy al final del día.
 
 **Bloque C: planificar más rápido**
 - [ ] C1. Copiar la semana anterior.

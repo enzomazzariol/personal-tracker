@@ -58,7 +58,7 @@ export default function Ofertas() {
           <span>{a.company}</span>
           {a.role && <span className="sm muted"> · {a.role}</span>}
         </button>
-        {a.applied_on && <span className="mono muted desk">aplicada {dateLabel(a.applied_on)}</span>}
+        {a.follow_up_on ? <span className="mono muted desk">seguimiento {dateLabel(a.follow_up_on)}</span> : a.applied_on && <span className="mono muted desk">aplicada {dateLabel(a.applied_on)}</span>}
         <label className="sr" htmlFor={`st-${a.id}`}>Estado de {a.company}</label>
         <select id={`st-${a.id}`} className="select" value={a.status} onChange={(e) => setStatus(a, e.target.value as JobStatus)}>
           {STATUSES.map((s) => (
@@ -129,7 +129,12 @@ function ApplicationEditor({ app, onChange, onRemove }: { app: JobApplication; o
         <input id={`url-${id}`} className="input grow" type="url" placeholder="Enlace a la oferta" defaultValue={app.url} onBlur={(e) => e.target.value !== app.url && onChange({ url: e.target.value.trim() })} />
         {app.url && <a className="link" href={app.url} target="_blank" rel="noreferrer">Abrir oferta ↗</a>}
         <label className="sr" htmlFor={`ap-${id}`}>Fecha de candidatura</label>
-        <input id={`ap-${id}`} className="input" type="date" value={app.applied_on ?? ''} onChange={(e) => onChange({ applied_on: e.target.value || null })} />
+        <input id={`ap-${id}`} className="input" type="date" title="Fecha de candidatura" value={app.applied_on ?? ''} onChange={(e) => onChange({ applied_on: e.target.value || null })} />
+      </div>
+      <div className="form">
+        <label className="sm muted" htmlFor={`fu-${id}`}>Volver a escribir el</label>
+        <input id={`fu-${id}`} className="input" type="date" value={app.follow_up_on ?? ''} onChange={(e) => onChange({ follow_up_on: e.target.value || null })} />
+        <span className="sm muted">Ese día aparecerá en Hoy.</span>
       </div>
       <label className="sr" htmlFor={`notes-${id}`}>Notas</label>
       <textarea id={`notes-${id}`} className="textarea" rows={4} placeholder="Notas: contacto, salario, impresiones de la entrevista…" value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={() => notes !== app.notes && onChange({ notes })} />

@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, read, write, StudyTopic, StudyTrack, TopicStatus, TOPIC_STATUS } from '@/lib/db'
+import { supabase, read, write, StudyTopic, StudyTrack, TOPIC_STATUS } from '@/lib/db'
+import { advanceTopic } from '@/lib/study'
 
-/** Un toque en el estado avanza al siguiente: pendiente → en curso → dominado → pendiente. */
-const NEXT: Record<TopicStatus, TopicStatus> = { pending: 'in_progress', in_progress: 'mastered', mastered: 'pending' }
 const nextSort = (items: { sort: number }[]) => items.reduce((max, x) => Math.max(max, x.sort + 1), 0)
 
 export default function Estudio() {
@@ -44,9 +43,9 @@ export default function Estudio() {
     if (data) patchTrack(track.id, (t) => ({ ...t, study_topics: [...(t.study_topics ?? []), data as StudyTopic] }))
   }
   async function cycleTopic(track: StudyTrack, topic: StudyTopic) {
-    const status = NEXT[topic.status]
-    patchTrack(track.id, (t) => ({ ...t, study_topics: t.study_topics!.map((x) => (x.id === topic.id ? { ...x, status } : x)) }))
-    await write(supabase.from('study_topics').update({ status }).eq('id', topic.id), load)
+    const changes = advanceTopic(topic)
+    patchTrack(track.id, (t) => ({ ...t, study_topics: t.study_topics!.map((x) => (x.id === topic.id ? { ...x, ...changes } : x)) }))
+    await write(supabase.from('study_topics').update(changes).eq('id', topic.id), load)
   }
   async function removeTopic(track: StudyTrack, topic: StudyTopic) {
     patchTrack(track.id, (t) => ({ ...t, study_topics: t.study_topics!.filter((x) => x.id !== topic.id) }))

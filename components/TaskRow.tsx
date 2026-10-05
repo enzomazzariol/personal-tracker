@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Check from './Check'
 import TaskForm from './TaskForm'
 import { Area, Project, Task, dueLabel } from '@/lib/db'
-import { TaskDraft } from '@/lib/useTasks'
+import { TaskDraft, toDraft } from '@/lib/useTasks'
 
 type Props = {
   task: Task
@@ -30,7 +30,8 @@ export default function TaskRow({ task: t, today, areas, projects, hideProject, 
           areas={areas}
           projects={projects}
           submit="Guardar"
-          initial={{ title: t.title, area_id: t.area_id ?? '', project_id: t.project_id ?? '', due_date: t.due_date ?? '' }}
+          chooseKind
+          initial={toDraft(t)}
           onSave={(d) => {
             setEditing(false)
             onSave(t.id, d)

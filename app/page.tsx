@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import Check from '@/components/Check'
 import BlockProjectTasks from '@/components/BlockProjectTasks'
 import BlockEditor from '@/components/BlockEditor'
+import BlockReading from '@/components/BlockReading'
+import BlockStudy from '@/components/BlockStudy'
+import FollowUps from '@/components/FollowUps'
+import JournalPrompt, { JOURNAL_PROMPT_HOUR } from '@/components/JournalPrompt'
 import {
   supabase, read, write, Block, Task, Reminder, Week, Area, Project,
   ymd, mondayOf, loadWeekBlocks, loadWeek, loadAreas, loadProjects, projectsForBlock, dueLabel,
@@ -16,7 +20,7 @@ export default function Hoy() {
   const [week, setWeek] = useState<Week | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  /** Tareas personales (sin proyecto) para hoy o sin fecha. */
+  /** Tareas sin proyecto (cotidianas y de trabajo) para hoy o sin fecha. */
   const [tasks, setTasks] = useState<Task[]>([])
   /** Tareas abiertas de todos los proyectos: salen en su bloque o, si vencen, en la lista. */
   const [projectTasks, setProjectTasks] = useState<Task[]>([])
@@ -75,6 +79,7 @@ export default function Hoy() {
   const areaName = (id: string) => areas.find((a) => a.id === id)?.name ?? id
   const projectName = (id: string | null) => projects.find((p) => p.id === id)?.name
   const blockProjects = current ? projectsForBlock(current, projects) : []
+  const blockKind = current ? areas.find((a) => a.id === current.area_id)?.kind : null
   const inBlock = (t: Task) => blockProjects.some((p) => p.id === t.project_id)
   // La lista: tareas personales y las de proyecto que vencen, salvo las que ya están en la tarjeta.
   const dueProjectTasks = projectTasks.filter((t) => t.due_date && t.due_date <= today && !inBlock(t))
@@ -196,6 +201,8 @@ export default function Hoy() {
               </div>
             )}
             <BlockProjectTasks projects={blockProjects} tasks={projectTasks} today={today} onDone={doneTask} />
+            {blockKind === 'reading' && <BlockReading today={today} />}
+            {blockKind === 'study' && <BlockStudy />}
             {current.why && <p className="sm dim">{current.why}</p>}
             {current.status === 'pending' ? (
               <div className="between" style={{ flexWrap: 'wrap' }}>
@@ -250,6 +257,9 @@ export default function Hoy() {
               </div>
             </section>
           )}
+
+          {d.getHours() >= JOURNAL_PROMPT_HOUR && <JournalPrompt today={today} />}
+          <FollowUps today={today} />
 
           <section className="stack">
             <div className="between">

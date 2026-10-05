@@ -54,6 +54,7 @@ docs/                    Especificación, diseño y modelo de datos
 - Ninguna consulta va suelta: las cargas pasan por `read(consulta, load)` y las escrituras por `write(consulta, load)` (`lib/db.ts`). Si fallan, avisan con `lib/notify.ts` (las cargas ofrecen «Reintentar») y la página recarga para que no quede en pantalla un cambio que no se guardó. En textos largos con guardado automático (notas, diario) se omite la recarga para no perder lo escrito.
 - Las escrituras son optimistas: primero se actualiza el estado local y después se llama a Supabase con `write`.
 - Los formularios que tapan la página son un `<dialog>` nativo (ver `components/BlockEditor.tsx`).
+- Lo que una sección aporta a otra pantalla (la tarjeta del bloque en Hoy, la revisión) va en un componente que carga sus propios datos: `BlockReading`, `BlockStudy`, `FollowUps`, `JournalPrompt`, `WeekSummary`. La página solo decide dónde mostrarlo.
 - Fechas como texto `YYYY-MM-DD` en hora local (`ymd`, `addDays`, `mondayOf`). La semana empieza en lunes. No uses `toISOString()` para obtener un día.
 - Horas con coma decimal y un decimal como máximo (`hours`). Duración planificada con `plannedMin`, tiempo real con `doneMin`.
 - Toda la interfaz en español de España, con tuteo.

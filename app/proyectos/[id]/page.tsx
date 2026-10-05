@@ -11,7 +11,7 @@ import {
   supabase, read, write, Area, Block, Project, ProjectStatus, ProjectSummary, PROJECT_STATUS,
   ymd, loadAreas, loadProjects, dateLabel, hm, hours, duration, plannedMin,
 } from '@/lib/db'
-import { EMPTY_TASK, useTasks } from '@/lib/useTasks'
+import { emptyTask, useTasks } from '@/lib/useTasks'
 
 const RECENT_BLOCKS = 20
 const STATUSES = Object.keys(PROJECT_STATUS) as ProjectStatus[]
@@ -110,7 +110,7 @@ export default function Proyecto() {
           <span className="label">Tareas</span>
           <span className="mono muted">{open.length}</span>
         </div>
-        <TaskForm id="new" areas={areas} projects={projects} submit="Añadir" initial={{ ...EMPTY_TASK, project_id: id }} onSave={add} />
+        <TaskForm id="new" areas={areas} projects={projects} submit="Añadir" initial={emptyTask('work', id)} onSave={add} />
         <div className="list">
           {open.map(row)}
           {open.length === 0 && <p className="empty">No hay tareas pendientes.</p>}

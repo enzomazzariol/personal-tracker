@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, read, write, Book, BookStatus, BOOK_STATUS, ReadingLog, ymd, mondayOf, dateLabel } from '@/lib/db'
+import LogPages from '@/components/LogPages'
+import { supabase, read, write, pagesRead, Book, BookStatus, BOOK_STATUS, ReadingLog, ymd, mondayOf, dateLabel } from '@/lib/db'
 
 const EMPTY = { title: '', author: '', pages: '' }
-const pagesRead = (b: Book) => (b.reading_log ?? []).reduce((s, l) => s + l.pages, 0)
 
 export default function Lectura() {
   const today = ymd(new Date())
@@ -102,18 +102,18 @@ export default function Lectura() {
         <span className="label">{BOOK_STATUS.reading}</span>
         <div className="list">
           {reading.map((b) => {
-            const read = pagesRead(b)
+            const done = pagesRead(b)
             return (
               <div key={b.id}>
                 <div className="item" style={{ flexWrap: 'wrap' }}>
                   {titleButton(b)}
-                  <span className="mono muted">{b.pages ? `${Math.min(read, b.pages)} / ${b.pages}` : `${read} págs.`}</span>
+                  <span className="mono muted">{b.pages ? `${Math.min(done, b.pages)} / ${b.pages}` : `${done} págs.`}</span>
                   <LogPages id={b.id} onLog={(n) => logPages(b, n)} />
                   <button className="btn ghost" onClick={() => setStatus(b, 'done')}>Terminado</button>
                 </div>
                 {b.pages && (
                   <div className="bar" style={{ marginBottom: 8 }}>
-                    <i style={{ width: `${Math.min(100, (read / b.pages) * 100)}%` }} />
+                    <i style={{ width: `${Math.min(100, (done / b.pages) * 100)}%` }} />
                   </div>
                 )}
                 {editor(b)}
@@ -157,26 +157,6 @@ export default function Lectura() {
         </section>
       )}
     </>
-  )
-}
-
-function LogPages({ id, onLog }: { id: string; onLog: (pages: number) => void }) {
-  const [pages, setPages] = useState('')
-  return (
-    <form
-      className="row"
-      style={{ gap: 8 }}
-      onSubmit={(e) => {
-        e.preventDefault()
-        const n = Math.round(Number(pages))
-        if (n > 0) onLog(n)
-        setPages('')
-      }}
-    >
-      <label className="sr" htmlFor={`log-${id}`}>Páginas leídas hoy</label>
-      <input id={`log-${id}`} className="input" type="number" min={1} inputMode="numeric" placeholder="Págs." style={{ width: 72 }} value={pages} onChange={(e) => setPages(e.target.value)} />
-      <button className="btn">Apuntar</button>
-    </form>
   )
 }
 

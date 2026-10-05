@@ -51,8 +51,9 @@ export default function Metas() {
     if (data) patchGoal(goal.id, (g) => ({ ...g, goal_milestones: [...(g.goal_milestones ?? []), data as GoalMilestone] }))
   }
   async function toggleMilestone(goal: Goal, m: GoalMilestone) {
-    patchGoal(goal.id, (g) => ({ ...g, goal_milestones: g.goal_milestones!.map((x) => (x.id === m.id ? { ...x, done: !m.done } : x)) }))
-    await write(supabase.from('goal_milestones').update({ done: !m.done }).eq('id', m.id), load)
+    const changes = { done: !m.done, done_at: m.done ? null : new Date().toISOString() }
+    patchGoal(goal.id, (g) => ({ ...g, goal_milestones: g.goal_milestones!.map((x) => (x.id === m.id ? { ...x, ...changes } : x)) }))
+    await write(supabase.from('goal_milestones').update(changes).eq('id', m.id), load)
   }
   async function removeMilestone(goal: Goal, m: GoalMilestone) {
     patchGoal(goal.id, (g) => ({ ...g, goal_milestones: g.goal_milestones!.filter((x) => x.id !== m.id) }))

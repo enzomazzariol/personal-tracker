@@ -20,6 +20,7 @@ Multiusuario: cada cuenta ve y escribe solo sus datos.
 | Campo | Tipo | Notas |
 |---|---|---|
 | user_id, id | uuid y text, clave | Por defecto: `trabajo`, `estudio`, `lectura`, `ejercicio`, `colchon` |
+| kind | text, opcional | `reading` o `study`: la tarjeta de un bloque del área en Hoy muestra el libro en curso o los temas de estudio. No depende del id ni del nombre |
 | name | text | Nombre visible |
 | sort | int | Orden |
 
@@ -70,6 +71,7 @@ Tiempo real de un bloque: `actual_minutes` más el tiempo transcurrido desde `st
 |---|---|---|
 | id | uuid, clave | |
 | title | text | |
+| kind | text | `personal` (cotidiana) o `work` (trabajo). Con proyecto, siempre `work` (restricción `tasks_project_is_work`) |
 | area_id | text, opcional | |
 | project_id | uuid, opcional | Referencia a `projects`; queda nulo si se borra el proyecto |
 | due_date | date, opcional | Sin fecha: bandeja |
@@ -121,6 +123,7 @@ Cada fila de `projects` con `minutes` (suma de `actual_minutes` de sus bloques) 
 | role, url, notes | text | Opcionales (cadena vacía) |
 | status | text | `saved`, `applied`, `interview`, `offer` o `rejected` |
 | applied_on | date, opcional | Se pone sola al pasar a `applied` por primera vez |
+| follow_up_on | date, opcional | Volver a escribir; aparece en Hoy ese día mientras siga `applied` o `interview` |
 | created_at | timestamptz | |
 
 ### goals y goal_milestones
@@ -134,6 +137,7 @@ Cada fila de `projects` con `minutes` (suma de `actual_minutes` de sus bloques) 
 | goals.status | text | `active`, `done` o `dropped` |
 | goal_milestones.goal_id | uuid | Referencia a `goals`, borrado en cascada |
 | goal_milestones.title, done, sort | text, boolean, int | El avance de la meta es hitos hechos / total |
+| goal_milestones.done_at | timestamptz, opcional | Cuándo se cumplió (revisión semanal) |
 
 ### books y reading_log
 
@@ -156,6 +160,7 @@ Cada fila de `projects` con `minutes` (suma de `actual_minutes` de sus bloques) 
 | study_topics.track_id | uuid | Referencia a `study_tracks`, borrado en cascada |
 | study_topics.title, sort | text, int | |
 | study_topics.status | text | `pending`, `in_progress` o `mastered` |
+| study_topics.mastered_at | timestamptz, opcional | Cuándo se dominó (revisión semanal); `lib/study.ts` lo mantiene |
 
 ### journal
 

@@ -43,9 +43,12 @@ export type Block = {
   started_at: string | null
   block_tasks?: BlockTask[]
 }
-export type Area = { id: string; name: string; sort: number }
+/** `kind` decide qué muestra la tarjeta de un bloque del área en Hoy (el libro en curso, los temas de estudio). */
+export type Area = { id: string; name: string; sort: number; kind: 'reading' | 'study' | null }
 export type Week = { start_date: string; number: number; goal: string; wins: string[]; review_notes: string; reviewed_at: string | null }
-export type Task = { id: string; title: string; area_id: string | null; project_id: string | null; due_date: string | null; done: boolean; done_at: string | null; created_at: string }
+export type TaskKind = 'personal' | 'work'
+export const TASK_KIND: Record<TaskKind, string> = { personal: 'Cotidianas', work: 'Trabajo' }
+export type Task = { id: string; title: string; kind: TaskKind; area_id: string | null; project_id: string | null; due_date: string | null; done: boolean; done_at: string | null; created_at: string }
 export type Note = { id: string; title: string; body: string; pinned: boolean; updated_at: string }
 export type Reminder = { id: string; title: string; remind_at: string; done: boolean }
 export type ProjectStatus = 'active' | 'paused' | 'done'
@@ -55,11 +58,11 @@ export type ProjectSummary = Project & { minutes: number; open_tasks: number }
 export const PROJECT_STATUS: Record<ProjectStatus, string> = { active: 'Activo', paused: 'En pausa', done: 'Terminado' }
 
 export type JobStatus = 'saved' | 'applied' | 'interview' | 'offer' | 'rejected'
-export type JobApplication = { id: string; company: string; role: string; url: string; status: JobStatus; applied_on: string | null; notes: string; created_at: string }
+export type JobApplication = { id: string; company: string; role: string; url: string; status: JobStatus; applied_on: string | null; follow_up_on: string | null; notes: string; created_at: string }
 export const JOB_STATUS: Record<JobStatus, string> = { saved: 'Guardada', applied: 'Aplicada', interview: 'Entrevista', offer: 'Oferta', rejected: 'Descartada' }
 
 export type GoalStatus = 'active' | 'done' | 'dropped'
-export type GoalMilestone = { id: string; goal_id: string; title: string; done: boolean; sort: number }
+export type GoalMilestone = { id: string; goal_id: string; title: string; done: boolean; done_at: string | null; sort: number }
 export type Goal = { id: string; title: string; period: string; due_date: string | null; status: GoalStatus; created_at: string; goal_milestones?: GoalMilestone[] }
 export const GOAL_STATUS: Record<GoalStatus, string> = { active: 'En curso', done: 'Lograda', dropped: 'Descartada' }
 
@@ -67,9 +70,10 @@ export type BookStatus = 'want' | 'reading' | 'done'
 export type ReadingLog = { id: string; book_id: string; date: string; pages: number }
 export type Book = { id: string; title: string; author: string; pages: number | null; status: BookStatus; started_on: string | null; finished_on: string | null; notes: string; created_at: string; reading_log?: ReadingLog[] }
 export const BOOK_STATUS: Record<BookStatus, string> = { reading: 'Leyendo', want: 'Por leer', done: 'Leído' }
+export const pagesRead = (b: Book) => (b.reading_log ?? []).reduce((sum, l) => sum + l.pages, 0)
 
 export type TopicStatus = 'pending' | 'in_progress' | 'mastered'
-export type StudyTopic = { id: string; track_id: string; title: string; status: TopicStatus; sort: number }
+export type StudyTopic = { id: string; track_id: string; title: string; status: TopicStatus; mastered_at: string | null; sort: number }
 export type StudyTrack = { id: string; name: string; sort: number; study_topics?: StudyTopic[] }
 export const TOPIC_STATUS: Record<TopicStatus, string> = { pending: 'Pendiente', in_progress: 'En curso', mastered: 'Dominado' }
 

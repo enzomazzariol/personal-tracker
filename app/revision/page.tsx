@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import WeekSummary from '@/components/WeekSummary'
 import { supabase, write, Block, Area, ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, dateLabel, dayLabel, plannedMin, hours } from '@/lib/db'
 
 function Revision() {
@@ -87,6 +88,8 @@ function Revision() {
           })}
         </div>
       </section>
+
+      <WeekSummary monday={monday} />
 
       {missed.length > 0 && (
         <section className="stack">

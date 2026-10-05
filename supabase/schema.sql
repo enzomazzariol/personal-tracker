@@ -8,6 +8,7 @@ create table public.areas (
   id text not null,
   name text not null,
   sort int not null default 0,
+  kind text check (kind in ('reading', 'study')), -- qué muestra la tarjeta del bloque en Hoy
   primary key (user_id, id)
 );
 
@@ -75,6 +76,7 @@ create table public.tasks (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   title text not null,
+  kind text not null default 'personal' check (kind in ('personal', 'work')), -- cotidiana o de trabajo
   area_id text,
   project_id uuid,
   due_date date,
@@ -82,7 +84,8 @@ create table public.tasks (
   done_at timestamptz,
   created_at timestamptz not null default now(),
   foreign key (user_id, area_id) references public.areas (user_id, id),
-  foreign key (project_id, user_id) references public.projects (id, user_id) on delete set null (project_id)
+  foreign key (project_id, user_id) references public.projects (id, user_id) on delete set null (project_id),
+  constraint tasks_project_is_work check (project_id is null or kind = 'work')
 );
 create index tasks_user_area_idx on public.tasks (user_id, area_id);
 create index tasks_project_idx on public.tasks (project_id);
@@ -116,6 +119,7 @@ create table public.job_applications (
   url text not null default '',
   status text not null default 'saved' check (status in ('saved', 'applied', 'interview', 'offer', 'rejected')),
   applied_on date,
+  follow_up_on date, -- volver a escribir; aparece en Hoy
   notes text not null default '',
   created_at timestamptz not null default now()
 );
@@ -139,6 +143,7 @@ create table public.goal_milestones (
   goal_id uuid not null,
   title text not null check (title <> ''),
   done boolean not null default false,
+  done_at timestamptz,
   sort int not null default 0,
   foreign key (goal_id, user_id) references public.goals (id, user_id) on delete cascade
 );
@@ -188,6 +193,7 @@ create table public.study_topics (
   track_id uuid not null,
   title text not null check (title <> ''),
   status text not null default 'pending' check (status in ('pending', 'in_progress', 'mastered')),
+  mastered_at timestamptz,
   sort int not null default 0,
   foreign key (track_id, user_id) references public.study_tracks (id, user_id) on delete cascade
 );
@@ -233,12 +239,12 @@ create function private.seed_new_user() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
 begin
-  insert into public.areas (user_id, id, name, sort) values
-    (new.id, 'trabajo', 'Trabajo', 1),
-    (new.id, 'estudio', 'Estudio', 2),
-    (new.id, 'lectura', 'Lectura', 3),
-    (new.id, 'ejercicio', 'Ejercicio', 4),
-    (new.id, 'colchon', 'Colchón', 5);
+  insert into public.areas (user_id, id, name, sort, kind) values
+    (new.id, 'trabajo', 'Trabajo', 1, null),
+    (new.id, 'estudio', 'Estudio', 2, 'study'),
+    (new.id, 'lectura', 'Lectura', 3, 'reading'),
+    (new.id, 'ejercicio', 'Ejercicio', 4, null),
+    (new.id, 'colchon', 'Colchón', 5, null);
   return new;
 end;
 $$;

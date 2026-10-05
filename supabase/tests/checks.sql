@@ -26,6 +26,7 @@ end $$;
 select public.as_user('b@x.es');
 do $$ begin
   assert (select count(*) from public.areas) = 5, 'b debería tener 5 áreas por defecto';
+  assert (select kind from public.areas where id = 'lectura') = 'reading', 'el área de lectura de b debería tener tipo reading';
   assert (select count(*) from public.blocks) = 0, 'b no debería ver bloques de a';
   assert (select count(*) from public.tasks) = 0, 'b no debería ver tareas de a';
 end $$;
@@ -47,6 +48,13 @@ do $$ begin
   assert (select area_id from public.project_summary) = 'trabajo', 'project_summary debería incluir area_id';
 end $$;
 
+-- una tarea con proyecto tiene que ser de trabajo
+do $$ begin
+  insert into public.tasks (title, kind, project_id) values ('incoherente', 'personal', (select id from public.projects where name = 'Proyecto de b'));
+  raise exception 'se aceptó una tarea cotidiana con proyecto';
+exception when check_violation then null;
+end $$;
+
 -- b no puede escribir filas a nombre de a
 do $$ begin
   insert into public.notes (user_id, title) values ((select id from auth.users where email = 'a@x.es'), 'falsa');
@@ -59,7 +67,7 @@ reset role;
 select public.as_user('a@x.es');
 insert into public.projects (name, client) values ('Web', 'Cliente');
 update public.blocks set project_id = (select id from public.projects), actual_minutes = 90 where title = 'Bloque de a';
-insert into public.tasks (title, project_id) values ('Tarea abierta', (select id from public.projects)), ('Otra', (select id from public.projects));
+insert into public.tasks (title, kind, project_id) values ('Tarea abierta', 'work', (select id from public.projects)), ('Otra', 'work', (select id from public.projects));
 update public.tasks set done = true where title = 'Otra';
 do $$ begin
   assert (select count(*) from public.weeks) = 1, 'a debería ver solo su semana';
