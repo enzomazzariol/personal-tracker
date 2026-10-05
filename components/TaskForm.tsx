@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Area, Project, TASK_KIND, TaskKind } from '@/lib/db'
+import { Area, Project, TASK_KIND, TASK_REPEAT, TaskKind, TaskRepeat } from '@/lib/db'
 import { TaskDraft } from '@/lib/useTasks'
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
 }
 
 const KINDS = Object.keys(TASK_KIND) as TaskKind[]
+const REPEATS = Object.keys(TASK_REPEAT) as TaskRepeat[]
 
 /** Alta y edición de tareas. Al crear se vacía el título y se conservan los valores iniciales (tipo, proyecto). */
 export default function TaskForm({ id, areas, projects, initial, submit, onSave, chooseKind }: Props) {
@@ -68,6 +69,13 @@ export default function TaskForm({ id, areas, projects, initial, submit, onSave,
       )}
       <label className="sr" htmlFor={`${id}-d`}>Fecha</label>
       <input id={`${id}-d`} className="input" type="date" value={d.due_date} onChange={(e) => setD({ ...d, due_date: e.target.value })} />
+      <label className="sr" htmlFor={`${id}-r`}>Repetición</label>
+      <select id={`${id}-r`} className="select" value={d.repeat} onChange={(e) => setD({ ...d, repeat: e.target.value as TaskRepeat | '' })}>
+        <option value="">No se repite</option>
+        {REPEATS.map((r) => (
+          <option key={r} value={r}>{TASK_REPEAT[r]}</option>
+        ))}
+      </select>
       <button className="btn primary">{submit}</button>
     </form>
   )

@@ -64,6 +64,7 @@ docs/                    Especificación, diseño y modelo de datos
 
 - Cada tabla nueva lleva `user_id`, RLS activado, la política `own_rows` y los permisos para `authenticated` (plantilla en `docs/data-model.md`). Nunca des permisos a `anon`.
 - Las referencias entre tablas incluyen `user_id` para que no se puedan mezclar datos de cuentas distintas.
+- Lo que escribe varias filas y tiene que hacerse entero (copiar una semana, repetir una tarea) va en una función o un disparador de Postgres, no en varias llamadas desde el navegador. Las funciones que la app llama son `security invoker`, para que RLS siga aplicando. Ver «Funciones y disparadores» en `docs/data-model.md`.
 - Los cambios de esquema van como archivo nuevo en `supabase/migrations/` con nombre `NNNN_descripcion.sql`, y además se reflejan en `schema.sql` para que siga creando la base de datos completa desde cero.
 - Si añades una tabla, añade su tipo en `lib/db.ts` y documenta sus campos en `docs/data-model.md`.
 - Tras cualquier cambio de esquema, `sh supabase/tests/run.sh` debe terminar en OK. Si la tabla es nueva, añade una comprobación de aislamiento en `supabase/tests/checks.sql`.

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Check from './Check'
 import TaskForm from './TaskForm'
-import { Area, Project, Task, dueLabel } from '@/lib/db'
+import { Area, Project, Task, TASK_REPEAT, dueLabel } from '@/lib/db'
 import { TaskDraft, toDraft } from '@/lib/useTasks'
 
 type Props = {
@@ -44,6 +44,7 @@ export default function TaskRow({ task: t, today, areas, projects, hideProject, 
     areas.find((a) => a.id === t.area_id)?.name,
     hideProject ? null : projects.find((p) => p.id === t.project_id)?.name,
     dueLabel(t, today),
+    t.repeat && TASK_REPEAT[t.repeat].toLowerCase(),
   ]
   return (
     <div className="item">

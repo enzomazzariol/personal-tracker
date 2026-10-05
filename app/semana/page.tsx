@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import BlockEditor from '@/components/BlockEditor'
+import { notify } from '@/lib/notify'
 import {
-  Block, Week, Area, Project,
+  supabase, write, Block, Week, Area, Project,
   ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, loadProjects,
   dayLabel, dateLabel, hm, plannedMin, doneMin, hours,
 } from '@/lib/db'
@@ -36,6 +37,13 @@ export default function Semana() {
   if (!blocks) return null
 
   const sum = (list: Block[], f: (b: Block) => number) => list.reduce((s, b) => s + f(b), 0)
+
+  async function copyPreviousWeek() {
+    const { ok, data } = await write<number>(supabase.rpc('copy_week', { from_monday: addDays(monday, -7), to_monday: monday }))
+    if (!ok) return
+    if (data === 0) notify('La semana anterior también está vacía: no hay nada que copiar.')
+    load()
+  }
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i))
 
   return (
@@ -79,6 +87,16 @@ export default function Semana() {
         </div>
       </section>
 
+      {blocks.length === 0 && (
+        <section className="panel between" style={{ flexWrap: 'wrap' }}>
+          <div className="stack">
+            <span className="label">Semana sin planificar</span>
+            <p className="sm muted">Empieza desde la anterior: se copian sus bloques y sus tareas, sin marcar.</p>
+          </div>
+          <button className="btn primary" onClick={copyPreviousWeek}>Copiar la semana anterior</button>
+        </section>
+      )}
+
       <section className="days">
         {days.map((day) => {
           const list = blocks.filter((b) => b.date === day)
@@ -102,7 +120,7 @@ export default function Semana() {
                     {hm(b.start_time)}
                     {b.status === 'done' ? ' · hecho' : b.status === 'skipped' ? ' · saltado' : ''}
                   </span>
-                  <span className={`t ${b.status === 'skipped' ? 'strike' : ''}`}>{b.title}</span>
+                  <span className={`t ${b.status === 'pending' ? '' : 'strike'}`}>{b.title}</span>
                 </button>
               ))}
               {list.length === 0 && <span className="sm muted">Libre</span>}

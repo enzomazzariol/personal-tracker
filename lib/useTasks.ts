@@ -1,12 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, read, write, Task, TaskKind } from './db'
+import { supabase, read, write, Task, TaskKind, TaskRepeat } from './db'
 
 /** Lo que edita el formulario de tareas. Los campos opcionales vacíos son ''. */
-export type TaskDraft = { title: string; kind: TaskKind; area_id: string; project_id: string; due_date: string }
-export const emptyTask = (kind: TaskKind, project_id = ''): TaskDraft => ({ title: '', kind, area_id: '', project_id, due_date: '' })
-export const toDraft = (t: Task): TaskDraft => ({ title: t.title, kind: t.kind, area_id: t.area_id ?? '', project_id: t.project_id ?? '', due_date: t.due_date ?? '' })
+export type TaskDraft = { title: string; kind: TaskKind; area_id: string; project_id: string; due_date: string; repeat: TaskRepeat | '' }
+export const emptyTask = (kind: TaskKind, project_id = ''): TaskDraft => ({ title: '', kind, area_id: '', project_id, due_date: '', repeat: '' })
+export const toDraft = (t: Task): TaskDraft => ({ title: t.title, kind: t.kind, area_id: t.area_id ?? '', project_id: t.project_id ?? '', due_date: t.due_date ?? '', repeat: t.repeat ?? '' })
 
 /** Una tarea con proyecto siempre es de trabajo; una cotidiana no lleva proyecto (lo exige también la base de datos). */
 const toRow = (d: TaskDraft) => ({
@@ -15,6 +15,7 @@ const toRow = (d: TaskDraft) => ({
   area_id: d.area_id || null,
   project_id: d.kind === 'personal' ? null : d.project_id || null,
   due_date: d.due_date || null,
+  repeat: d.repeat || null,
 })
 
 /**
@@ -49,7 +50,8 @@ export function useTasks(projectId?: string) {
   const toggle = async (t: Task) => {
     const changes = { done: !t.done, done_at: t.done ? null : new Date().toISOString() }
     patch(t.id, changes)
-    await write(supabase.from('tasks').update(changes).eq('id', t.id), load)
+    const { ok } = await write(supabase.from('tasks').update(changes).eq('id', t.id), load)
+    if (ok && t.repeat) load() // la base de datos crea (o quita) la siguiente repetición
   }
   const remove = async (t: Task) => {
     setTasks((ts) => ts!.filter((x) => x.id !== t.id))

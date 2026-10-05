@@ -77,7 +77,7 @@ h1.title { font-size: clamp(40px, 11vw, 94px); line-height: 0.9; font-weight: 30
 .card { background: var(--fg); color: var(--bg); padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
 .card h2 { font-size: 39px; line-height: 1.05; font-weight: 300; letter-spacing: -0.02em; }
 .card .label { color: var(--bg); }
-.card .dim { color: var(--on-light-muted); }
+.card .dim, .card .strike { color: var(--on-light-muted); }
 .card .line { border-top: 1px solid var(--on-light-line); }
 .card .line:last-child { border-bottom: 1px solid var(--on-light-line); }
 @media (min-width: 900px) { .card { padding: 34px; } .card h2 { font-size: 54px; } .cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 46px; align-items: start; } }

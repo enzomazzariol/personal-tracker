@@ -124,7 +124,7 @@ export default function Proyecto() {
           {blocks.map((b) => (
             <div key={b.id} className="item">
               <span className="mono time" style={{ width: 80 }}>{dateLabel(b.date)} {hm(b.start_time)}</span>
-              <span className={`sm grow ${b.status === 'skipped' ? 'strike' : ''}`}>{b.title}</span>
+              <span className={`sm grow ${b.status === 'pending' ? '' : 'strike'}`}>{b.title}</span>
               <span className="mono muted">{b.status === 'done' ? duration(b.actual_minutes) : b.status === 'skipped' ? 'saltado' : `plan ${duration(plannedMin(b))}`}</span>
             </div>
           ))}

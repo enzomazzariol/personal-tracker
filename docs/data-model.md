@@ -72,6 +72,8 @@ Tiempo real de un bloque: `actual_minutes` más el tiempo transcurrido desde `st
 | id | uuid, clave | |
 | title | text | |
 | kind | text | `personal` (cotidiana) o `work` (trabajo). Con proyecto, siempre `work` (restricción `tasks_project_is_work`) |
+| repeat | text, opcional | `daily`, `weekly` o `monthly` |
+| repeat_from | uuid, opcional | La tarea de la que salió esta repetición |
 | area_id | text, opcional | |
 | project_id | uuid, opcional | Referencia a `projects`; queda nulo si se borra el proyecto |
 | due_date | date, opcional | Sin fecha: bandeja |
@@ -172,6 +174,14 @@ Cada fila de `projects` con `minutes` (suma de `actual_minutes` de sus bloques) 
 | updated_at | timestamptz | |
 
 Si se vacían el texto y el ánimo, la entrada se borra.
+
+## Funciones y disparadores
+
+Lo que toca varias filas a la vez y tiene que hacerse entero o nada vive en la base de datos:
+
+- `copy_week(from_monday, to_monday)`: copia los bloques de una semana a otra con sus tareas sin marcar, y crea la semana nueva con el número siguiente. Se llama con `supabase.rpc('copy_week', …)`. Es `security invoker`: RLS solo deja copiar lo propio.
+- Disparador `tasks_repeat` (`private.repeat_task`): al marcar como hecha una tarea con `repeat`, crea la siguiente con `next_due(fecha, repeat)`, un intervalo después y nunca en el pasado. Al desmarcarla, borra esa siguiente si aún no se ha hecho.
+- Disparador `on_auth_user_created` (`private.seed_new_user`): áreas por defecto para cada cuenta nueva.
 
 ## Cargar una semana
 

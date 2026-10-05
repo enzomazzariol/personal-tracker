@@ -35,6 +35,26 @@ end $$;
 insert into public.blocks (date, start_time, end_time, area_id, title) values ('2026-10-05', '09:00', '10:00', 'trabajo', 'Bloque de b');
 insert into public.weeks (start_date, number) values ('2026-10-05', 1);
 
+-- copy_week copia solo lo de b, con sus tareas sin marcar, y numera la semana siguiente
+insert into public.block_tasks (block_id, title, done) values ((select id from public.blocks where title = 'Bloque de b'), 'Subtarea', true);
+do $$ begin
+  assert public.copy_week('2026-10-05', '2026-10-12') = 1, 'copy_week debería copiar 1 bloque (el de b, no el de a)';
+  assert (select count(*) from public.blocks where date = '2026-10-12') = 1, 'falta el bloque copiado';
+  assert (select done from public.block_tasks bt join public.blocks b on b.id = bt.block_id where b.date = '2026-10-12') = false, 'la subtarea copiada debería estar sin marcar';
+  assert (select number from public.weeks where start_date = '2026-10-12') = 2, 'la semana copiada debería ser la 2';
+end $$;
+
+-- una tarea semanal atrasada: al hacerla, la siguiente cae en el futuro; al desmarcarla, se borra
+insert into public.tasks (title, due_date, repeat) values ('Regar plantas', current_date - 10, 'weekly');
+update public.tasks set done = true where title = 'Regar plantas';
+do $$ begin
+  assert (select due_date from public.tasks where title = 'Regar plantas' and not done) = current_date + 4, 'la siguiente debería ser dentro de 4 días';
+end $$;
+update public.tasks set done = false where title = 'Regar plantas' and done;
+do $$ begin
+  assert (select count(*) from public.tasks where title = 'Regar plantas') = 1, 'al desmarcar debería borrarse la siguiente';
+end $$;
+
 -- b no puede colgar una subtarea de un bloque de a aunque conozca su id
 do $$ begin
   insert into public.block_tasks (block_id, title) values ((select id from public.blocks_of_a), 'intruso');

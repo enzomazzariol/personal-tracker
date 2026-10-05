@@ -109,7 +109,8 @@ export default function Hoy() {
   async function doneTask(t: Task) {
     setTasks((ts) => ts.filter((x) => x.id !== t.id))
     setProjectTasks((ts) => ts.filter((x) => x.id !== t.id))
-    await write(supabase.from('tasks').update({ done: true, done_at: new Date().toISOString() }).eq('id', t.id), load)
+    const { ok } = await write(supabase.from('tasks').update({ done: true, done_at: new Date().toISOString() }).eq('id', t.id), load)
+    if (ok && t.repeat) load() // aparece la siguiente repetición si ya toca
   }
   async function doneReminder(r: Reminder) {
     setReminders((rs) => rs.filter((x) => x.id !== r.id))
@@ -187,7 +188,7 @@ export default function Hoy() {
                 <button className="link" style={{ color: 'inherit' }} onClick={() => setEditing(true)}>Editar</button>
               </div>
             </div>
-            <h2>{current.title}</h2>
+            <h2 className={current.status === 'pending' ? '' : 'strike'}>{current.title}</h2>
             {Boolean(current.block_tasks?.length) && (
               <div>
                 {current.block_tasks!.map((t) => (
@@ -248,7 +249,7 @@ export default function Hoy() {
                 {others.map((b) => (
                   <button key={b.id} className="item" onClick={() => setPicked(b.id)}>
                     <span className="mono time">{hm(b.start_time)}</span>
-                    <span className={`grow ${b.status === 'skipped' ? 'strike' : ''}`}>{b.title}</span>
+                    <span className={`grow ${b.status === 'pending' ? '' : 'strike'}`}>{b.title}</span>
                     <span className={`mono ${b.status === 'done' ? 'green' : 'muted'}`}>
                       {b.status === 'done' ? 'hecho' : b.status === 'skipped' ? 'saltado' : b.started_at ? clock(runningMin(b, now) + b.actual_minutes) : duration(plannedMin(b))}
                     </span>

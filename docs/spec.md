@@ -72,8 +72,8 @@ Se hacen por bloques, en orden. Cada bloque se cierra con build, pruebas y revis
 - [x] B5. Diario desde Hoy al final del día.
 
 **Bloque C: planificar más rápido**
-- [ ] C1. Copiar la semana anterior.
-- [ ] C2. Tareas que se repiten.
+- [x] C1. Copiar la semana anterior.
+- [x] C2. Tareas que se repiten.
 
 **Bloque D: mantenibilidad**
 - [ ] D1. Tipos generados desde el esquema de Supabase.
