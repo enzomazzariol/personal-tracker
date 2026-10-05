@@ -246,11 +246,11 @@ language plpgsql security definer set search_path = ''
 as $$
 begin
   insert into public.areas (user_id, id, name, sort, kind, color) values
-    (new.id, 'trabajo', 'Trabajo', 1, null, '#7aa2ff'),
-    (new.id, 'estudio', 'Estudio', 2, 'study', '#c792ea'),
-    (new.id, 'lectura', 'Lectura', 3, 'reading', '#f2c46d'),
-    (new.id, 'ejercicio', 'Ejercicio', 4, null, '#6fd39b'),
-    (new.id, 'colchon', 'Colchón', 5, null, '#9aa0a6');
+    (new.id, 'trabajo', 'Trabajo', 1, null, '#2f6bff'),
+    (new.id, 'estudio', 'Estudio', 2, 'study', '#00b8d9'),
+    (new.id, 'lectura', 'Lectura', 3, 'reading', '#ffa800'),
+    (new.id, 'ejercicio', 'Ejercicio', 4, null, '#12b76a'),
+    (new.id, 'colchon', 'Colchón', 5, null, '#8a8f98');
   return new;
 end;
 $$;

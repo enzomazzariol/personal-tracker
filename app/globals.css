@@ -25,7 +25,7 @@ button { cursor: pointer; }
 .muted { color: var(--muted); }
 .sm { font-size: 14px; line-height: 1.43; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; display: inline-block; }
-.swatch { width: 8px; height: 8px; border-radius: 50%; background: var(--area, var(--muted)); flex-shrink: 0; display: inline-block; }
+.swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--area, var(--muted)); flex-shrink: 0; display: inline-block; }
 .green { color: var(--fg); }
 .strike { text-decoration: line-through; color: var(--muted); }
 .grow { flex-grow: 1; min-width: 0; }
@@ -73,6 +73,7 @@ h1.title { font-size: clamp(40px, 11vw, 94px); line-height: 0.9; font-weight: 30
 .mid { font-size: 29px; line-height: 1.1; font-weight: 300; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .bar { height: 1px; background: var(--line); }
 .bar > i { display: block; height: 1px; background: var(--area, var(--fg)); max-width: 100%; }
+.area .bar, .area .bar > i { height: 3px; }
 @media (min-width: 900px) { .tiles.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tile { padding: 28px; } }
 
 /* bright card: the one light object per screen */
@@ -136,7 +137,7 @@ button.item:hover { color: var(--muted); }
 .day.today .green { color: var(--bg); }
 .day.today .x { color: var(--on-light-muted); }
 .day.today .x:hover { color: var(--bg); }
-.blk { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; min-height: 44px; background: none; border: 0; border-left: 3px solid var(--area, transparent); padding-left: 8px; text-align: left; width: 100%; justify-content: center; }
+.blk { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; min-height: 44px; background: none; border: 0; border-left: 4px solid var(--area, transparent); padding-left: 8px; text-align: left; width: 100%; justify-content: center; }
 .blk .t { font-size: 14px; line-height: 1.43; overflow-wrap: anywhere; }
 @media (min-width: 900px) {
   .areas { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

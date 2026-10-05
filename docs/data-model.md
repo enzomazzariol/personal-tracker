@@ -23,7 +23,7 @@ Multiusuario: cada cuenta ve y escribe solo sus datos. La app es de uso personal
 | kind | text, opcional | `reading` o `study`: la tarjeta de un bloque del área en Hoy muestra el libro en curso o los temas de estudio. No depende del id ni del nombre |
 | name | text | Nombre visible |
 | sort | int | Orden |
-| color | text | Color del área en hexadecimal en minúsculas (`#7aa2ff`); por defecto blanco |
+| color | text | Color del área en hexadecimal en minúsculas (`#2f6bff`); por defecto blanco |
 
 ### weeks
 
