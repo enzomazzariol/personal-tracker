@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { notify } from './notify'
+import type { CSSProperties } from 'react'
 import type { Database } from './database.types'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -40,6 +41,8 @@ export type BlockTask = Row<'block_tasks'>
 export type Block = Narrow<Row<'blocks'>, { status: BlockStatus }> & { block_tasks?: BlockTask[] }
 /** `kind` decide qué muestra la tarjeta de un bloque del área en Hoy (el libro en curso, los temas de estudio). */
 export type Area = Narrow<Row<'areas'>, { kind: 'reading' | 'study' | null }>
+/** Pasa el color del área a CSS como `--area` (lo usan `.swatch`, `.blk` y la barra de `.area`). */
+export const areaColor = (a?: Area) => ({ '--area': a?.color }) as CSSProperties
 export type Week = Row<'weeks'>
 export type TaskKind = 'personal' | 'work'
 export const TASK_KIND: Record<TaskKind, string> = { personal: 'Cotidianas', work: 'Trabajo' }

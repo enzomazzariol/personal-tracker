@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/db'
 import { MORE_GROUPS } from '@/lib/nav'
+import ExportButton from '@/components/ExportButton'
 
 export default function Mas() {
   return (
@@ -22,6 +23,9 @@ export default function Mas() {
         </section>
       ))}
       <div className="list">
+        <ExportButton className="item between">
+          <span>Exportar datos</span>
+        </ExportButton>
         <button className="item between" onClick={() => supabase.auth.signOut()}>
           <span>Cerrar sesión</span>
         </button>

@@ -9,6 +9,7 @@ create table public.areas (
   name text not null,
   sort int not null default 0,
   kind text check (kind in ('reading', 'study')), -- qué muestra la tarjeta del bloque en Hoy
+  color text not null default '#ffffff' check (color ~ '^#[0-9a-f]{6}$'),
   primary key (user_id, id)
 );
 
@@ -244,12 +245,12 @@ create function private.seed_new_user() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
 begin
-  insert into public.areas (user_id, id, name, sort, kind) values
-    (new.id, 'trabajo', 'Trabajo', 1, null),
-    (new.id, 'estudio', 'Estudio', 2, 'study'),
-    (new.id, 'lectura', 'Lectura', 3, 'reading'),
-    (new.id, 'ejercicio', 'Ejercicio', 4, null),
-    (new.id, 'colchon', 'Colchón', 5, null);
+  insert into public.areas (user_id, id, name, sort, kind, color) values
+    (new.id, 'trabajo', 'Trabajo', 1, null, '#7aa2ff'),
+    (new.id, 'estudio', 'Estudio', 2, 'study', '#c792ea'),
+    (new.id, 'lectura', 'Lectura', 3, 'reading', '#f2c46d'),
+    (new.id, 'ejercicio', 'Ejercicio', 4, null, '#6fd39b'),
+    (new.id, 'colchon', 'Colchón', 5, null, '#9aa0a6');
   return new;
 end;
 $$;

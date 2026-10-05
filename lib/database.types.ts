@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       areas: {
         Row: {
+          color: string
           id: string
           kind: string | null
           name: string
@@ -18,6 +19,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          color?: string
           id: string
           kind?: string | null
           name: string
@@ -25,6 +27,7 @@ export type Database = {
           user_id?: string
         }
         Update: {
+          color?: string
           id?: string
           kind?: string | null
           name?: string

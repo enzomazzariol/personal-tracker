@@ -4,7 +4,7 @@ Postgres en Supabase. El esquema completo está en `supabase/schema.sql`; los ca
 
 ## Permisos
 
-Multiusuario: cada cuenta ve y escribe solo sus datos.
+Multiusuario: cada cuenta ve y escribe solo sus datos. La app es de uso personal; las cuentas separadas son por seguridad.
 
 - Todas las tablas de `public` tienen `user_id uuid not null default auth.uid()`, con referencia a `auth.users` y borrado en cascada. Desde la app no hace falta enviarlo: lo pone la base de datos.
 - Cada tabla tiene RLS con la política `own_rows` para `authenticated`: `user_id = (select auth.uid())` para leer y escribir. El rol `anon` no tiene ningún permiso.
@@ -23,6 +23,7 @@ Multiusuario: cada cuenta ve y escribe solo sus datos.
 | kind | text, opcional | `reading` o `study`: la tarjeta de un bloque del área en Hoy muestra el libro en curso o los temas de estudio. No depende del id ni del nombre |
 | name | text | Nombre visible |
 | sort | int | Orden |
+| color | text | Color del área en hexadecimal en minúsculas (`#7aa2ff`); por defecto blanco |
 
 ### weeks
 

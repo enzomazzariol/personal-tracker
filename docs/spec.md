@@ -2,11 +2,13 @@
 
 ## Propósito
 
+Herramienta personal: la uso yo y no está pensada para venderse. Las prioridades salen de lo que me frena en el día a día, no del mercado.
+
 Una sola app que, al abrirla, dice qué toca hoy y permite registrar todo lo demás. No es solo una lista de tareas: el objetivo es llevar el seguimiento de las distintas áreas de la vida del usuario y ver su evolución.
 
 ## Principios
 
-- Multiusuario: cada cuenta ve solo sus datos. No hay equipos, compartir ni roles.
+- Multiusuario en la base de datos (cada cuenta ve solo sus datos, con RLS) por seguridad, no para tener más usuarios. No hay equipos, compartir ni roles.
 - Primero el móvil, y que funcione igual de bien en escritorio.
 - El plan semanal se compone de bloques con día, hora, área y tareas. El tiempo real se mide con el cronómetro de cada bloque.
 - El plan de cada semana se escribe directamente en la base de datos después de la revisión del domingo.
@@ -27,7 +29,7 @@ La misma idea sirve para el resto de secciones: según el tipo de su área (`are
 
 ## Áreas
 
-Cada cuenta empieza con Trabajo, Estudio, Lectura, Ejercicio y Colchón (hueco semanal para imprevistos o para recuperar un bloque). Viven en la tabla `areas`; todavía no hay pantalla para editarlas, se cambian desde la base de datos.
+Cada cuenta empieza con Trabajo, Estudio, Lectura, Ejercicio y Colchón (hueco semanal para imprevistos o para recuperar un bloque). Viven en la tabla `areas`, cada una con un color que la identifica en Semana, Hoy y Revisión; no hay pantalla para editarlas, se cambian desde la base de datos.
 
 ## Etapa 1: núcleo (hecha)
 
@@ -79,11 +81,9 @@ Se hacen por bloques, en orden. Cada bloque se cierra con build, pruebas y revis
 - [x] D1. Tipos generados desde el esquema de Supabase.
 - [x] D2. Comprobación automática en GitHub (build y pruebas en cada push).
 
-**Bloque E: preparar la venta**
-- [ ] E1. Pantalla para editar áreas.
-- [ ] E2. Borrar la cuenta.
-- [ ] E3. Exportar los datos.
-- [ ] E4. Página de presentación y política de privacidad.
+**Bloque E: uso diario**
+- [x] E1. Exportar todos los datos a un JSON (copia de seguridad), desde la columna lateral y «Más».
+- [x] E2. Un color por área.
 
 ## Etapa 3: vista de conjunto (pendiente)
 

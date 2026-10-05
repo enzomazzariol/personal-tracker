@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import WeekSummary from '@/components/WeekSummary'
-import { supabase, write, Block, Area, ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, dateLabel, dayLabel, plannedMin, hours } from '@/lib/db'
+import { supabase, write, Block, Area, areaColor, ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, dateLabel, dayLabel, plannedMin, hours } from '@/lib/db'
 
 function Revision() {
   const params = useSearchParams()
@@ -79,7 +79,7 @@ function Revision() {
             const list = blocks.filter((b) => b.area_id === a.id)
             return (
               <div key={a.id} className="item between">
-                <span>{a.name}</span>
+                <span className="row" style={{ gap: 8 }}><span className="swatch" style={areaColor(a)} />{a.name}</span>
                 <span className="mono muted">
                   {hours(sum(list, (b) => b.actual_minutes))} / {hours(sum(list, plannedMin))} h · {list.filter((b) => b.status === 'done').length}/{list.length} bloques
                 </span>

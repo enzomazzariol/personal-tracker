@@ -25,6 +25,7 @@ button { cursor: pointer; }
 .muted { color: var(--muted); }
 .sm { font-size: 14px; line-height: 1.43; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; display: inline-block; }
+.swatch { width: 8px; height: 8px; border-radius: 50%; background: var(--area, var(--muted)); flex-shrink: 0; display: inline-block; }
 .green { color: var(--fg); }
 .strike { text-decoration: line-through; color: var(--muted); }
 .grow { flex-grow: 1; min-width: 0; }
@@ -57,6 +58,7 @@ h1.title { font-size: clamp(40px, 11vw, 94px); line-height: 0.9; font-weight: 30
   .side nav a { min-height: 36px; display: flex; align-items: center; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; transition: color var(--ease); }
   .side nav a:hover, .side nav a[aria-current='page'] { color: var(--fg); }
   .side .link { margin-top: auto; text-align: left; }
+  .side .link + .link { margin-top: 0; }
   .topbar, .bottomnav, .mob { display: none !important; }
   .main { padding: 46px 48px 68px; }
 }
@@ -70,7 +72,7 @@ h1.title { font-size: clamp(40px, 11vw, 94px); line-height: 0.9; font-weight: 30
 .big small, .mid small { font-size: 14px; letter-spacing: 0; color: var(--muted); }
 .mid { font-size: 29px; line-height: 1.1; font-weight: 300; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .bar { height: 1px; background: var(--line); }
-.bar > i { display: block; height: 1px; background: var(--fg); max-width: 100%; }
+.bar > i { display: block; height: 1px; background: var(--area, var(--fg)); max-width: 100%; }
 @media (min-width: 900px) { .tiles.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tile { padding: 28px; } }
 
 /* bright card: the one light object per screen */
@@ -134,7 +136,7 @@ button.item:hover { color: var(--muted); }
 .day.today .green { color: var(--bg); }
 .day.today .x { color: var(--on-light-muted); }
 .day.today .x:hover { color: var(--bg); }
-.blk { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; min-height: 44px; background: none; border: 0; text-align: left; width: 100%; justify-content: center; }
+.blk { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; min-height: 44px; background: none; border: 0; border-left: 3px solid var(--area, transparent); padding-left: 8px; text-align: left; width: 100%; justify-content: center; }
 .blk .t { font-size: 14px; line-height: 1.43; overflow-wrap: anywhere; }
 @media (min-width: 900px) {
   .areas { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

@@ -1,6 +1,6 @@
 # Diseño
 
-Tema oscuro siempre. Tipografía y estructura de monopo saigon (ficha en `docs/referencia-monopo.md`); fondo Dark Veil de React Bits. La interfaz es blanco sobre negro y nunca tiene color: el único color es el velo morado del fondo.
+Tema oscuro siempre. Tipografía y estructura de monopo saigon (ficha en `docs/referencia-monopo.md`); fondo Dark Veil de React Bits. La interfaz es blanco sobre negro; el único color, aparte del velo morado del fondo, es el de cada área.
 
 ## Colores
 
@@ -18,8 +18,8 @@ Definidos como variables en `app/globals.css`.
 
 Reglas:
 
-- Interfaz solo en blanco, negro y grises. No se añaden colores de acento.
-- El estado se distingue con texto, peso o inversión (blanco sobre negro ↔ negro sobre blanco), nunca con color.
+- Interfaz en blanco, negro y grises. El único color es el de las áreas (`areas.color`), que solo marca a qué área pertenece algo: un punto `.swatch`, el borde izquierdo de `.blk` en Semana y la barra de horas de `.area`. Se pasa con `areaColor(area)` (`lib/db.ts`) como variable `--area`.
+- El estado (hecho, saltado, en curso) se distingue con texto, peso o inversión (blanco sobre negro ↔ negro sobre blanco), nunca con color.
 - Fondo: `components/Veil.tsx`, el shader Dark Veil con WebGL directo, fijo detrás de toda la app a media resolución (`SCALE`). Se queda quieto con `prefers-reduced-motion`. Sin WebGL, queda negro.
 - La tarjeta clara (`.card`) es el único objeto brillante por pantalla: el bloque actual en Hoy. El día de hoy en Semana usa la misma inversión.
 
@@ -65,7 +65,7 @@ Reglas:
 | Superficies | `.veil` (lienzo del fondo), `.card` (clara), `.panel` (borde fino), `.tiles` y `.tile`, `.bar` |
 | Listas | `.list`, `.item`, `.time`, `.empty` |
 | Controles | `.btn` con `.primary` o `.ghost`; `.link`; `.x`; `.check`; `.input`, `.select`, `.textarea`; `.form`; `.seg` |
-| Estado | `.dot` (punto del color del texto) |
+| Estado | `.dot` (punto del color del texto), `.swatch` (punto del color del área) |
 | Accesibilidad | `.sr` (solo para lectores de pantalla) |
 
 ## Botones

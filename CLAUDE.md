@@ -1,6 +1,6 @@
 # Tracker
 
-App personal de un solo usuario para llevar el plan semanal por bloques, tareas, notas, recordatorios y, más adelante, otras áreas de la vida (proyectos, metas, lectura, estudio, diario, entrenos, dinero). Se usa en móvil y en escritorio.
+App personal de un solo usuario (la uso yo; no se va a vender) para llevar el plan semanal por bloques, tareas, notas, recordatorios y, más adelante, otras áreas de la vida (proyectos, metas, lectura, estudio, diario, entrenos, dinero). Se usa en móvil y en escritorio.
 
 Lee `docs/spec.md` antes de añadir una sección, `docs/design.md` antes de tocar la interfaz y `docs/data-model.md` antes de tocar la base de datos.
 
@@ -22,7 +22,7 @@ Variables en `.env.local` (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL` y `NE
 
 - Next.js 16 (App Router) y React 19. Es una versión reciente: si dudas de una API, consulta la documentación incluida en `node_modules/next/dist/docs/` en lugar de fiarte de la memoria.
 - Todas las páginas son componentes de cliente (`'use client'`) que hablan con Supabase directamente desde el navegador con `supabase-js`. No hay rutas de API, server actions ni middleware.
-- Multiusuario. La seguridad la pone la base de datos: cada fila tiene `user_id` (por defecto `auth.uid()`) y RLS en todas las tablas.
+- Multiusuario en la base de datos, por seguridad. La seguridad la pone la base de datos: cada fila tiene `user_id` (por defecto `auth.uid()`) y RLS en todas las tablas.
 - `components/Shell.tsx` gestiona la sesión (muestra `Login` si no hay) y la navegación: barra inferior en móvil, columna lateral desde 900 px.
 - Las secciones se definen una sola vez en `lib/nav.ts`, agrupadas por propósito: Plan (Hoy, Semana, Revisión, Metas), Trabajo (Tareas, Proyectos, Ofertas), Vida (Lectura, Estudio, Diario) y Apuntes (Notas, Recordatorios). La columna lateral de escritorio, la barra inferior y «Más» salen de ahí.
 - `lib/db.ts` contiene el cliente, los tipos de cada tabla y las utilidades de fechas y horas. Reutilízalas; no dupliques.
@@ -45,6 +45,7 @@ lib/db.ts                Cliente, tipos, utilidades
 lib/database.types.ts    Tipos generados del esquema (npm run types)
 lib/useTasks.ts          Datos y operaciones de tareas
 lib/nav.ts               Secciones y grupos de la navegación
+lib/export.ts            Exportar todos los datos a JSON (añade ahí cada tabla nueva)
 lib/periods.ts           Periodos de las metas (prueba: node lib/periods.test.mjs)
 supabase/schema.sql      Esquema completo y permisos
 supabase/migrations/     Cambios posteriores al esquema inicial

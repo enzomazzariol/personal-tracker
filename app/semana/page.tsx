@@ -5,7 +5,7 @@ import Link from 'next/link'
 import BlockEditor from '@/components/BlockEditor'
 import { notify } from '@/lib/notify'
 import {
-  supabase, write, Block, Week, Area, Project,
+  supabase, write, Block, Week, Area, areaColor, Project,
   ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, loadProjects,
   dayLabel, dateLabel, hm, plannedMin, doneMin, hours,
 } from '@/lib/db'
@@ -72,8 +72,8 @@ export default function Semana() {
             const done = sum(list, (b) => doneMin(b, now))
             const plan = sum(list, plannedMin)
             return (
-              <div key={a.id} className="area">
-                <span className="label">{a.name}</span>
+              <div key={a.id} className="area" style={areaColor(a)}>
+                <span className="label row" style={{ gap: 6 }}><span className="swatch" />{a.name}</span>
                 <div className="mid">
                   {hours(done)}
                   <small> / {hours(plan)} h</small>
@@ -114,7 +114,7 @@ export default function Semana() {
                 </span>
               </div>
               {list.map((b) => (
-                <button key={b.id} className="blk" onClick={() => setEditing({ block: b, date: b.date })} aria-label={`${b.title}: ${b.status === 'done' ? 'hecho' : b.status === 'skipped' ? 'saltado' : 'pendiente'}. Editar`}>
+                <button key={b.id} className="blk" style={areaColor(areas.find((a) => a.id === b.area_id))} onClick={() => setEditing({ block: b, date: b.date })} aria-label={`${b.title}: ${b.status === 'done' ? 'hecho' : b.status === 'skipped' ? 'saltado' : 'pendiente'}. Editar`}>
                   <span className={`mono ${b.status === 'done' ? 'green' : 'muted'}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {b.started_at && <span className="dot" />}
                     {hm(b.start_time)}

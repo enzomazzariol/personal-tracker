@@ -9,6 +9,7 @@ import { NAV, MOBILE_ITEMS, MORE_GROUPS, isIn } from '@/lib/nav'
 import Login from './Login'
 import NewPassword from './NewPassword'
 import Toaster from './Toaster'
+import ExportButton from './ExportButton'
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
@@ -63,6 +64,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
           ))}
         </nav>
+        <ExportButton className="link">Exportar datos</ExportButton>
         <button className="link" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
       </aside>
       <header className="topbar between">

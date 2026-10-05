@@ -9,7 +9,7 @@ import BlockStudy from '@/components/BlockStudy'
 import FollowUps from '@/components/FollowUps'
 import JournalPrompt, { JOURNAL_PROMPT_HOUR } from '@/components/JournalPrompt'
 import {
-  supabase, read, write, Changes, Block, Task, Reminder, Week, Area, Project,
+  supabase, read, write, Changes, Block, Task, Reminder, Week, Area, areaColor, Project,
   ymd, mondayOf, loadWeekBlocks, loadWeek, loadAreas, loadProjects, projectsForBlock, dueLabel,
   DAYS, MONTHS, hm, plannedMin, doneMin, runningMin, hours, duration, clock,
 } from '@/lib/db'
@@ -184,7 +184,7 @@ export default function Hoy() {
                 </span>
               </div>
               <div className="row" style={{ gap: 12 }}>
-                <span className="label dim">{areaName(current.area_id)}</span>
+                <span className="label dim row" style={{ gap: 6 }}><span className="swatch" style={areaColor(areas.find((a) => a.id === current.area_id))} />{areaName(current.area_id)}</span>
                 <button className="link" style={{ color: 'inherit' }} onClick={() => setEditing(true)}>Editar</button>
               </div>
             </div>
@@ -248,6 +248,7 @@ export default function Hoy() {
               <div className="list">
                 {others.map((b) => (
                   <button key={b.id} className="item" onClick={() => setPicked(b.id)}>
+                    <span className="swatch" style={areaColor(areas.find((a) => a.id === b.area_id))} />
                     <span className="mono time">{hm(b.start_time)}</span>
                     <span className={`grow ${b.status === 'pending' ? '' : 'strike'}`}>{b.title}</span>
                     <span className={`mono ${b.status === 'done' ? 'green' : 'muted'}`}>
