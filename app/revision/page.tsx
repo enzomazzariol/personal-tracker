@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { supabase, Block, Area, ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, dateLabel, dayLabel, plannedMin, hours } from '@/lib/db'
+import { supabase, write, Block, Area, ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, dateLabel, dayLabel, plannedMin, hours } from '@/lib/db'
 
 function Revision() {
   const params = useSearchParams()
@@ -15,7 +15,9 @@ function Revision() {
   const [status, setStatus] = useState('')
 
   const load = useCallback(async () => {
-    const [b, w, a] = await Promise.all([loadWeekBlocks(monday), loadWeek(monday), loadAreas()])
+    const retry = () => load()
+    const [b, w, a] = await Promise.all([loadWeekBlocks(monday, retry), loadWeek(monday, retry), loadAreas(retry)])
+    if (!b || !a) return
     setBlocks(b)
     setAreas(a)
     setNumber(w?.number ?? null)
@@ -34,8 +36,8 @@ function Revision() {
   async function save(e: React.FormEvent) {
     e.preventDefault()
     setStatus('Guardando')
-    const { error } = await supabase.from('weeks').upsert({ start_date: monday, number: number ?? 1, wins: wins.map((w) => w.trim()).filter(Boolean), review_notes: notes, reviewed_at: new Date().toISOString() })
-    setStatus(error ? 'No se pudo guardar' : 'Revisión guardada')
+    const { ok } = await write(supabase.from('weeks').upsert({ start_date: monday, number: number ?? 1, wins: wins.map((w) => w.trim()).filter(Boolean), review_notes: notes, reviewed_at: new Date().toISOString() }))
+    setStatus(ok ? 'Revisión guardada' : 'No se pudo guardar')
   }
 
   return (

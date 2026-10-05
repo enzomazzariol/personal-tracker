@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import Check from '@/components/Check'
 import BlockProjectTasks from '@/components/BlockProjectTasks'
+import BlockEditor from '@/components/BlockEditor'
 import {
-  supabase, Block, Task, Reminder, Week, Area, Project,
+  supabase, read, write, Block, Task, Reminder, Week, Area, Project,
   ymd, mondayOf, loadWeekBlocks, loadWeek, loadAreas, loadProjects, projectsForBlock, dueLabel,
   DAYS, MONTHS, hm, plannedMin, doneMin, runningMin, hours, duration, clock,
 } from '@/lib/db'
@@ -21,6 +22,7 @@ export default function Hoy() {
   const [projectTasks, setProjectTasks] = useState<Task[]>([])
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [picked, setPicked] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
   const [capture, setCapture] = useState('')
   const [kind, setKind] = useState<'task' | 'note'>('task')
   const [saved, setSaved] = useState('')
@@ -31,23 +33,25 @@ export default function Hoy() {
   const load = useCallback(async () => {
     const end = new Date()
     end.setHours(23, 59, 59, 999)
+    const retry = () => load()
     const openTasks = () => supabase.from('tasks').select('*').eq('done', false)
     const [b, w, a, p, t, pt, r] = await Promise.all([
-      loadWeekBlocks(monday),
-      loadWeek(monday),
-      loadAreas(),
-      loadProjects(),
-      openTasks().is('project_id', null).or(`due_date.is.null,due_date.lte.${today}`).order('due_date', { nullsFirst: false }).order('created_at').limit(12),
-      openTasks().not('project_id', 'is', null).order('due_date', { nullsFirst: false }).order('created_at').limit(200),
-      supabase.from('reminders').select('*').eq('done', false).lte('remind_at', end.toISOString()).order('remind_at'),
+      loadWeekBlocks(monday, retry),
+      loadWeek(monday, retry),
+      loadAreas(retry),
+      loadProjects(retry),
+      read(openTasks().is('project_id', null).or(`due_date.is.null,due_date.lte.${today}`).order('due_date', { nullsFirst: false }).order('created_at').limit(12), retry),
+      read(openTasks().not('project_id', 'is', null).order('due_date', { nullsFirst: false }).order('created_at').limit(200), retry),
+      read(supabase.from('reminders').select('*').eq('done', false).lte('remind_at', end.toISOString()).order('remind_at'), retry),
     ])
+    if (!b || !a || !p || !t || !pt || !r) return
     setBlocks(b)
     setWeek(w)
     setAreas(a)
     setProjects(p)
-    setTasks((t.data ?? []) as Task[])
-    setProjectTasks((pt.data ?? []) as Task[])
-    setReminders((r.data ?? []) as Reminder[])
+    setTasks(t as Task[])
+    setProjectTasks(pt as Task[])
+    setReminders(r as Reminder[])
   }, [monday, today])
 
   useEffect(() => {
@@ -78,7 +82,7 @@ export default function Hoy() {
 
   async function patch(b: Block, changes: Partial<Block>) {
     setBlocks((bs) => bs!.map((x) => (x.id === b.id ? { ...x, ...changes } : x)))
-    await supabase.from('blocks').update(changes).eq('id', b.id)
+    await write(supabase.from('blocks').update(changes).eq('id', b.id), load)
   }
   const start = (b: Block) => patch(b, { started_at: new Date().toISOString(), status: 'pending' })
   const pause = (b: Block) => patch(b, { started_at: null, actual_minutes: Math.round(doneMin(b, Date.now())) })
@@ -95,24 +99,24 @@ export default function Hoy() {
 
   async function toggleBlockTask(b: Block, id: string, done: boolean) {
     setBlocks((bs) => bs!.map((x) => (x.id === b.id ? { ...x, block_tasks: x.block_tasks?.map((t) => (t.id === id ? { ...t, done } : t)) } : x)))
-    await supabase.from('block_tasks').update({ done }).eq('id', id)
+    await write(supabase.from('block_tasks').update({ done }).eq('id', id), load)
   }
   async function doneTask(t: Task) {
     setTasks((ts) => ts.filter((x) => x.id !== t.id))
     setProjectTasks((ts) => ts.filter((x) => x.id !== t.id))
-    await supabase.from('tasks').update({ done: true, done_at: new Date().toISOString() }).eq('id', t.id)
+    await write(supabase.from('tasks').update({ done: true, done_at: new Date().toISOString() }).eq('id', t.id), load)
   }
   async function doneReminder(r: Reminder) {
     setReminders((rs) => rs.filter((x) => x.id !== r.id))
-    await supabase.from('reminders').update({ done: true }).eq('id', r.id)
+    await write(supabase.from('reminders').update({ done: true }).eq('id', r.id), load)
   }
   async function addCapture(e: React.FormEvent) {
     e.preventDefault()
     const text = capture.trim()
     if (!text) return
+    const { ok } = await write(kind === 'task' ? supabase.from('tasks').insert({ title: text }) : supabase.from('notes').insert({ title: text }))
+    if (!ok) return // el texto se queda en el campo para reintentar
     setCapture('')
-    if (kind === 'task') await supabase.from('tasks').insert({ title: text })
-    else await supabase.from('notes').insert({ title: text })
     setSaved(kind === 'task' ? 'Tarea guardada' : 'Nota guardada')
     setTimeout(() => setSaved(''), 2000)
     load()
@@ -173,7 +177,10 @@ export default function Hoy() {
                   {current.status === 'done' ? 'Hecho' : current.status === 'skipped' ? 'Saltado' : isRunning ? 'En curso' : inWindow ? 'Ahora' : 'Siguiente'} · {hm(current.start_time)}–{hm(current.end_time)}
                 </span>
               </div>
-              <span className="label dim">{areaName(current.area_id)}</span>
+              <div className="row" style={{ gap: 12 }}>
+                <span className="label dim">{areaName(current.area_id)}</span>
+                <button className="link" style={{ color: 'inherit' }} onClick={() => setEditing(true)}>Editar</button>
+              </div>
             </div>
             <h2>{current.title}</h2>
             {Boolean(current.block_tasks?.length) && (
@@ -220,6 +227,10 @@ export default function Hoy() {
             <span className="label">{todays.length ? 'Día completado' : 'Sin bloques hoy'}</span>
             <p className="sm muted">{todays.length ? 'No queda ningún bloque pendiente para hoy.' : 'No hay nada planificado para hoy.'}</p>
           </section>
+        )}
+
+        {editing && current && (
+          <BlockEditor key={current.id} block={current} date={current.date} areas={areas} projects={projects} onClose={() => setEditing(false)} onChanged={load} />
         )}
 
         <div className="stack-lg">

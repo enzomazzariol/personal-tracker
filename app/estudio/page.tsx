@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, StudyTopic, StudyTrack, TopicStatus, TOPIC_STATUS } from '@/lib/db'
+import { supabase, read, write, StudyTopic, StudyTrack, TopicStatus, TOPIC_STATUS } from '@/lib/db'
 
 /** Un toque en el estado avanza al siguiente: pendiente → en curso → dominado → pendiente. */
 const NEXT: Record<TopicStatus, TopicStatus> = { pending: 'in_progress', in_progress: 'mastered', mastered: 'pending' }
@@ -13,8 +13,9 @@ export default function Estudio() {
   const [name, setName] = useState('')
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('study_tracks').select('*, study_topics(*)').order('sort').order('created_at')
-    const list = (data ?? []) as StudyTrack[]
+    const data = await read(supabase.from('study_tracks').select('*, study_topics(*)').order('sort').order('created_at'), () => load())
+    if (!data) return
+    const list = data as StudyTrack[]
     list.forEach((t) => t.study_topics?.sort((a, b) => a.sort - b.sort))
     setTracks(list)
   }, [])
@@ -29,26 +30,27 @@ export default function Estudio() {
   async function addTrack(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
-    await supabase.from('study_tracks').insert({ name: name.trim(), sort: nextSort(tracks!) })
+    const { ok } = await write(supabase.from('study_tracks').insert({ name: name.trim(), sort: nextSort(tracks!) }))
+    if (!ok) return
     setName('')
     load()
   }
   async function removeTrack(id: string) {
     setTracks((ts) => ts!.filter((t) => t.id !== id))
-    await supabase.from('study_tracks').delete().eq('id', id)
+    await write(supabase.from('study_tracks').delete().eq('id', id), load)
   }
   async function addTopic(track: StudyTrack, title: string) {
-    const { data } = await supabase.from('study_topics').insert({ track_id: track.id, title, sort: nextSort(track.study_topics ?? []) }).select().single()
+    const { data } = await write<StudyTopic>(supabase.from('study_topics').insert({ track_id: track.id, title, sort: nextSort(track.study_topics ?? []) }).select().single(), load)
     if (data) patchTrack(track.id, (t) => ({ ...t, study_topics: [...(t.study_topics ?? []), data as StudyTopic] }))
   }
   async function cycleTopic(track: StudyTrack, topic: StudyTopic) {
     const status = NEXT[topic.status]
     patchTrack(track.id, (t) => ({ ...t, study_topics: t.study_topics!.map((x) => (x.id === topic.id ? { ...x, status } : x)) }))
-    await supabase.from('study_topics').update({ status }).eq('id', topic.id)
+    await write(supabase.from('study_topics').update({ status }).eq('id', topic.id), load)
   }
   async function removeTopic(track: StudyTrack, topic: StudyTopic) {
     patchTrack(track.id, (t) => ({ ...t, study_topics: t.study_topics!.filter((x) => x.id !== topic.id) }))
-    await supabase.from('study_topics').delete().eq('id', topic.id)
+    await write(supabase.from('study_topics').delete().eq('id', topic.id), load)
   }
 
   const topics = tracks.flatMap((t) => t.study_topics ?? [])

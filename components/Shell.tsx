@@ -7,15 +7,30 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase, configured, DAYS_SHORT, MONTHS } from '@/lib/db'
 import { NAV, MOBILE_ITEMS, MORE_GROUPS, isIn } from '@/lib/nav'
 import Login from './Login'
+import NewPassword from './NewPassword'
+import Toaster from './Toaster'
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
+  // Al volver del enlace de recuperación hay que pedir la contraseña nueva antes de entrar.
+  // El evento puede llegar antes de suscribirse, así que también se mira la URL del enlace.
+  const [recovering, setRecovering] = useState(() => typeof window !== 'undefined' && window.location.hash.includes('type=recovery'))
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => data.subscription.unsubscribe()
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'PASSWORD_RECOVERY') setRecovering(true)
+      setSession(s)
+    })
+    // Si el enlace se abre en la pestaña donde ya está la app, el navegador solo cambia el fragmento (#) sin recargar,
+    // y ni Supabase ni el estado inicial lo ven. Recargar hace que lo procesen.
+    const onHash = () => window.location.hash.includes('type=recovery') && window.location.reload()
+    window.addEventListener('hashchange', onHash)
+    return () => {
+      data.subscription.unsubscribe()
+      window.removeEventListener('hashchange', onHash)
+    }
   }, [])
 
   if (!configured)
@@ -26,6 +41,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     )
   if (session === undefined) return null
   if (!session) return <Login />
+  if (recovering) return <NewPassword onDone={() => setRecovering(false)} />
 
   const now = new Date()
   const current = (href: string) => (isIn(path, href) ? 'page' : undefined)
@@ -56,6 +72,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </span>
       </header>
       <main className="main">{children}</main>
+      <Toaster />
       <nav aria-label="Secciones" className="bottomnav mono">
         {MOBILE_ITEMS.map((i) => (
           <Link key={i.href} href={i.href} aria-current={current(i.href)}>

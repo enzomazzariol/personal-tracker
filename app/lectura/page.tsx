@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, Book, BookStatus, BOOK_STATUS, ReadingLog, ymd, mondayOf, dateLabel } from '@/lib/db'
+import { supabase, read, write, Book, BookStatus, BOOK_STATUS, ReadingLog, ymd, mondayOf, dateLabel } from '@/lib/db'
 
 const EMPTY = { title: '', author: '', pages: '' }
 const pagesRead = (b: Book) => (b.reading_log ?? []).reduce((s, l) => s + l.pages, 0)
@@ -17,8 +17,8 @@ export default function Lectura() {
 
   const load = useCallback(async () => {
     // ponytail: trae todo el registro de páginas con cada libro; paginar o agregar en SQL si crece mucho
-    const { data } = await supabase.from('books').select('*, reading_log(id, book_id, date, pages)').order('created_at', { ascending: false })
-    setBooks((data ?? []) as Book[])
+    const data = await read(supabase.from('books').select('*, reading_log(id, book_id, date, pages)').order('created_at', { ascending: false }), () => load())
+    if (data) setBooks(data as Book[])
   }, [])
   useEffect(() => {
     load()
@@ -29,13 +29,14 @@ export default function Lectura() {
   async function add(e: React.FormEvent) {
     e.preventDefault()
     if (!draft.title.trim()) return
-    await supabase.from('books').insert({ title: draft.title.trim(), author: draft.author.trim(), pages: Number(draft.pages) || null })
+    const { ok } = await write(supabase.from('books').insert({ title: draft.title.trim(), author: draft.author.trim(), pages: Number(draft.pages) || null }))
+    if (!ok) return
     setDraft(EMPTY)
     load()
   }
   async function update(id: string, changes: Partial<Book>) {
     setBooks((bs) => bs!.map((b) => (b.id === id ? { ...b, ...changes } : b)))
-    await supabase.from('books').update(changes).eq('id', id)
+    await write(supabase.from('books').update(changes).eq('id', id), load)
   }
   const setStatus = (b: Book, status: BookStatus) =>
     update(b.id, {
@@ -44,13 +45,13 @@ export default function Lectura() {
       ...(status === 'done' ? { finished_on: today } : {}),
     })
   async function logPages(b: Book, pages: number) {
-    const { data } = await supabase.from('reading_log').insert({ book_id: b.id, pages, date: today }).select().single()
+    const { data } = await write<ReadingLog>(supabase.from('reading_log').insert({ book_id: b.id, pages, date: today }).select().single(), load)
     if (data) setBooks((bs) => bs!.map((x) => (x.id === b.id ? { ...x, reading_log: [...(x.reading_log ?? []), data as ReadingLog] } : x)))
   }
   async function remove(id: string) {
     setOpenId(null)
     setBooks((bs) => bs!.filter((b) => b.id !== id))
-    await supabase.from('books').delete().eq('id', id)
+    await write(supabase.from('books').delete().eq('id', id), load)
   }
 
   const logs = books.flatMap((b) => b.reading_log ?? [])

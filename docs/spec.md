@@ -53,6 +53,36 @@ Los campos son una propuesta inicial; se ajustan al construir cada sección.
 | Estudio (hecha) | Temario por materia con lo dominado y lo pendiente | `study_tracks` (nombre); `study_topics` (materia, título, estado: pendiente, en curso, dominado) |
 | Diario (hecha) | Una entrada corta al día y estado de ánimo | `journal` (fecha única, texto, ánimo de 1 a 5) |
 
+## Mejoras (en curso)
+
+Se hacen por bloques, en orden. Cada bloque se cierra con build, pruebas y revisión en el navegador.
+
+**Bloque A: robustez**
+- [x] A1. Errores visibles: aviso cuando falla una carga o un guardado, con opción de reintentar, y vuelta al estado real si un guardado optimista falla.
+- [x] A2. Editar y borrar bloques y sus tareas desde Semana.
+- [x] A3. Recuperar la contraseña.
+
+**Bloque B: secciones conectadas**
+- [ ] B1. Bloque de Lectura: el libro en curso y apuntar páginas desde la tarjeta.
+- [ ] B2. Bloque de Estudio: los temas en curso de su materia.
+- [ ] B3. Revisión semanal con datos de todas las secciones.
+- [ ] B4. Ofertas con fecha de seguimiento que aparece en Hoy.
+- [ ] B5. Diario desde Hoy al final del día.
+
+**Bloque C: planificar más rápido**
+- [ ] C1. Copiar la semana anterior.
+- [ ] C2. Tareas que se repiten.
+
+**Bloque D: mantenibilidad**
+- [ ] D1. Tipos generados desde el esquema de Supabase.
+- [ ] D2. Comprobación automática en GitHub (build y pruebas en cada push).
+
+**Bloque E: preparar la venta**
+- [ ] E1. Pantalla para editar áreas.
+- [ ] E2. Borrar la cuenta.
+- [ ] E3. Exportar los datos.
+- [ ] E4. Página de presentación y política de privacidad.
+
 ## Etapa 3: vista de conjunto (pendiente)
 
 | Sección | Qué hace |
@@ -67,7 +97,6 @@ Los campos son una propuesta inicial; se ajustan al construir cada sección.
 - Mover un bloque no hecho al colchón con un toque.
 - Rachas de hábitos.
 - Notificaciones push.
-- Pantalla para crear, renombrar y ordenar áreas (necesaria antes de abrir la app a otras personas).
 
 ## Fuera de alcance
 

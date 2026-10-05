@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, Task } from './db'
+import { supabase, read, write, Task } from './db'
 
 /** Lo que edita el formulario de tareas. Los campos opcionales vacíos son ''. */
 export type TaskDraft = { title: string; area_id: string; project_id: string; due_date: string }
@@ -24,8 +24,8 @@ export function useTasks(projectId: string | null) {
   const load = useCallback(async () => {
     const all = supabase.from('tasks').select('*')
     const query = projectId ? all.eq('project_id', projectId) : all.is('project_id', null)
-    const { data } = await query.order('due_date', { nullsFirst: false }).order('created_at', { ascending: false }).limit(300)
-    setTasks((data ?? []) as Task[])
+    const data = await read(query.order('due_date', { nullsFirst: false }).order('created_at', { ascending: false }).limit(300), () => load())
+    if (data) setTasks(data as Task[])
   }, [projectId])
   useEffect(() => {
     load()
@@ -34,23 +34,23 @@ export function useTasks(projectId: string | null) {
   const patch = (id: string, changes: Partial<Task>) => setTasks((ts) => ts!.map((t) => (t.id === id ? { ...t, ...changes } : t)))
 
   const add = async (d: TaskDraft) => {
-    await supabase.from('tasks').insert(toRow(d))
+    await write(supabase.from('tasks').insert(toRow(d)))
     load()
   }
   const save = async (id: string, d: TaskDraft) => {
     const row = toRow(d)
     patch(id, row)
-    await supabase.from('tasks').update(row).eq('id', id)
-    if (row.project_id !== projectId) load() // ha cambiado de lista
+    const { ok } = await write(supabase.from('tasks').update(row).eq('id', id), load)
+    if (ok && row.project_id !== projectId) load() // ha cambiado de lista
   }
   const toggle = async (t: Task) => {
     const changes = { done: !t.done, done_at: t.done ? null : new Date().toISOString() }
     patch(t.id, changes)
-    await supabase.from('tasks').update(changes).eq('id', t.id)
+    await write(supabase.from('tasks').update(changes).eq('id', t.id), load)
   }
   const remove = async (t: Task) => {
     setTasks((ts) => ts!.filter((x) => x.id !== t.id))
-    await supabase.from('tasks').delete().eq('id', t.id)
+    await write(supabase.from('tasks').delete().eq('id', t.id), load)
   }
 
   return { tasks, add, save, toggle, remove }

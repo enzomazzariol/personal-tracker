@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, JobApplication, JobStatus, JOB_STATUS, ymd, dateLabel } from '@/lib/db'
+import { supabase, read, write, JobApplication, JobStatus, JOB_STATUS, ymd, dateLabel } from '@/lib/db'
 
 /** Orden de las secciones: lo más avanzado primero. Las descartadas van plegadas al final. */
 const PIPELINE: JobStatus[] = ['offer', 'interview', 'applied', 'saved']
@@ -18,8 +18,8 @@ export default function Ofertas() {
   const [showRejected, setShowRejected] = useState(false)
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('job_applications').select('*').order('created_at', { ascending: false })
-    setApps((data ?? []) as JobApplication[])
+    const data = await read(supabase.from('job_applications').select('*').order('created_at', { ascending: false }), () => load())
+    if (data) setApps(data as JobApplication[])
   }, [])
   useEffect(() => {
     load()
@@ -30,13 +30,14 @@ export default function Ofertas() {
   async function add(e: React.FormEvent) {
     e.preventDefault()
     if (!draft.company.trim()) return
-    await supabase.from('job_applications').insert({ company: draft.company.trim(), role: draft.role.trim(), url: draft.url.trim() })
+    const { ok } = await write(supabase.from('job_applications').insert({ company: draft.company.trim(), role: draft.role.trim(), url: draft.url.trim() }))
+    if (!ok) return
     setDraft(EMPTY)
     load()
   }
   async function update(id: string, changes: Partial<JobApplication>) {
     setApps((as) => as!.map((a) => (a.id === id ? { ...a, ...changes } : a)))
-    await supabase.from('job_applications').update(changes).eq('id', id)
+    await write(supabase.from('job_applications').update(changes).eq('id', id), load)
   }
   /** Al pasar a «Aplicada» por primera vez se apunta la fecha. */
   const setStatus = (a: JobApplication, status: JobStatus) =>
@@ -44,7 +45,7 @@ export default function Ofertas() {
   async function remove(id: string) {
     setOpenId(null)
     setApps((as) => as!.filter((a) => a.id !== id))
-    await supabase.from('job_applications').delete().eq('id', id)
+    await write(supabase.from('job_applications').delete().eq('id', id), load)
   }
 
   const inProgress = apps.filter((a) => a.status === 'applied' || a.status === 'interview').length

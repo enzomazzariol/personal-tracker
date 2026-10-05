@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import ProjectForm, { EMPTY_PROJECT, ProjectDraft, toProjectRow } from '@/components/ProjectForm'
-import { supabase, Area, ProjectSummary, ymd, loadAreas, dateLabel, hours } from '@/lib/db'
+import { supabase, read, write, Area, ProjectSummary, ymd, loadAreas, dateLabel, hours } from '@/lib/db'
 
 /** "Guarapo Media · Cliente · entrega 12 oct · 3,5 h · 2 tareas" */
 function meta(p: ProjectSummary, areas: Area[], today: string) {
@@ -19,8 +19,10 @@ export default function Proyectos() {
   const [showDone, setShowDone] = useState(false)
 
   const load = useCallback(async () => {
-    const [{ data }, a] = await Promise.all([supabase.from('project_summary').select('*').order('due_date', { nullsFirst: false }).order('name'), loadAreas()])
-    setProjects((data ?? []) as ProjectSummary[])
+    const retry = () => load()
+    const [data, a] = await Promise.all([read(supabase.from('project_summary').select('*').order('due_date', { nullsFirst: false }).order('name'), retry), loadAreas(retry)])
+    if (!data || !a) return
+    setProjects(data as ProjectSummary[])
     setAreas(a)
   }, [])
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function Proyectos() {
   if (!projects) return null
 
   async function add(d: ProjectDraft) {
-    await supabase.from('projects').insert(toProjectRow(d))
+    await write(supabase.from('projects').insert(toProjectRow(d)))
     load()
   }
 

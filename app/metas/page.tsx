@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Check from '@/components/Check'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, Goal, GoalMilestone, GoalStatus, GOAL_STATUS, ymd, dateLabel } from '@/lib/db'
+import { supabase, read, write, Goal, GoalMilestone, GoalStatus, GOAL_STATUS, ymd, dateLabel } from '@/lib/db'
 import { periodLabel, periodOptions } from '@/lib/periods'
 
 const STATUSES = Object.keys(GOAL_STATUS) as GoalStatus[]
@@ -16,8 +16,9 @@ export default function Metas() {
   const [showClosed, setShowClosed] = useState(false)
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('goals').select('*, goal_milestones(*)').order('period').order('created_at')
-    const list = (data ?? []) as Goal[]
+    const data = await read(supabase.from('goals').select('*, goal_milestones(*)').order('period').order('created_at'), () => load())
+    if (!data) return
+    const list = data as Goal[]
     list.forEach((g) => g.goal_milestones?.sort((a, b) => a.sort - b.sort))
     setGoals(list)
   }, [])
@@ -30,31 +31,32 @@ export default function Metas() {
   async function add(e: React.FormEvent) {
     e.preventDefault()
     if (!draft.title.trim()) return
-    await supabase.from('goals').insert({ title: draft.title.trim(), period: draft.period, due_date: draft.due_date || null })
+    const { ok } = await write(supabase.from('goals').insert({ title: draft.title.trim(), period: draft.period, due_date: draft.due_date || null }))
+    if (!ok) return
     setDraft({ ...draft, title: '', due_date: '' })
     load()
   }
   const patchGoal = (id: string, f: (g: Goal) => Goal) => setGoals((gs) => gs!.map((g) => (g.id === id ? f(g) : g)))
   async function update(id: string, changes: Partial<Goal>) {
     patchGoal(id, (g) => ({ ...g, ...changes }))
-    await supabase.from('goals').update(changes).eq('id', id)
+    await write(supabase.from('goals').update(changes).eq('id', id), load)
   }
   async function remove(id: string) {
     setGoals((gs) => gs!.filter((g) => g.id !== id))
-    await supabase.from('goals').delete().eq('id', id)
+    await write(supabase.from('goals').delete().eq('id', id), load)
   }
   async function addMilestone(goal: Goal, title: string) {
     const sort = (goal.goal_milestones ?? []).reduce((max, m) => Math.max(max, m.sort + 1), 0)
-    const { data } = await supabase.from('goal_milestones').insert({ goal_id: goal.id, title, sort }).select().single()
+    const { data } = await write<GoalMilestone>(supabase.from('goal_milestones').insert({ goal_id: goal.id, title, sort }).select().single(), load)
     if (data) patchGoal(goal.id, (g) => ({ ...g, goal_milestones: [...(g.goal_milestones ?? []), data as GoalMilestone] }))
   }
   async function toggleMilestone(goal: Goal, m: GoalMilestone) {
     patchGoal(goal.id, (g) => ({ ...g, goal_milestones: g.goal_milestones!.map((x) => (x.id === m.id ? { ...x, done: !m.done } : x)) }))
-    await supabase.from('goal_milestones').update({ done: !m.done }).eq('id', m.id)
+    await write(supabase.from('goal_milestones').update({ done: !m.done }).eq('id', m.id), load)
   }
   async function removeMilestone(goal: Goal, m: GoalMilestone) {
     patchGoal(goal.id, (g) => ({ ...g, goal_milestones: g.goal_milestones!.filter((x) => x.id !== m.id) }))
-    await supabase.from('goal_milestones').delete().eq('id', m.id)
+    await write(supabase.from('goal_milestones').delete().eq('id', m.id), load)
   }
 
   const active = goals.filter((g) => g.status === 'active')

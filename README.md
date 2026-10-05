@@ -12,7 +12,7 @@ Next.js (App Router) + Supabase. Un solo usuario.
 3. **Local.** `npm install` y `npm run dev`.
 4. **Vercel.** Importa el repositorio y añade las mismas dos variables en Settings → Environment Variables.
 5. **Primera entrada.** En la pantalla de acceso pulsa "Primera vez: crear cuenta", confirma el correo que te llega y entra.
-   Para que el enlace de confirmación vuelva a la app, pon su dirección en Supabase → Authentication → URL Configuration → Site URL.
+   Para que los enlaces de confirmación y de recuperación de contraseña vuelvan a la app, pon su dirección en Supabase → Authentication → URL Configuration → Site URL.
 6. **Datos iniciales (opcional).** Los planes semanales se cargan desde el editor SQL; mira «Cargar una semana» en `docs/data-model.md`.
 
 ## Permisos

@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { supabase, JournalEntry, ymd, addDays, parseYmd, DAYS, dateLabel } from '@/lib/db'
+import { supabase, read, write, JournalEntry, ymd, addDays, parseYmd, DAYS, dateLabel } from '@/lib/db'
 
 const MOODS = [1, 2, 3, 4, 5]
 const SAVE_DELAY_MS = 600
@@ -20,12 +20,16 @@ function Diario() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const load = useCallback(async () => {
+    const retry = () => load()
     const [e, r] = await Promise.all([
+      // Sin read(): aquí null significa «aún no hay entrada ese día», no «ha fallado».
       supabase.from('journal').select('*').eq('date', date).maybeSingle(),
-      supabase.from('journal').select('*').order('date', { ascending: false }).limit(RECENT),
+      read(supabase.from('journal').select('*').order('date', { ascending: false }).limit(RECENT), retry),
     ])
+    if (e.error) return void read(Promise.resolve(e), retry)
+    if (!r) return
     setEntry({ body: e.data?.body ?? '', mood: e.data?.mood ?? null })
-    setRecent((r.data ?? []) as JournalEntry[])
+    setRecent(r as JournalEntry[])
     setStatus('')
   }, [date])
   useEffect(() => {
@@ -50,10 +54,13 @@ function Diario() {
     const save = async () => {
       pending.current = null
       const empty = !next.body.trim() && next.mood === null
-      const { error } = empty
-        ? await supabase.from('journal').delete().eq('date', date)
-        : await supabase.from('journal').upsert({ date, body: next.body, mood: next.mood, updated_at: new Date().toISOString() })
-      setStatus(error ? 'No se pudo guardar' : 'Guardado')
+      // Sin recargar al fallar: lo escrito se queda en pantalla para no perderlo.
+      const { ok } = await write(
+        empty
+          ? supabase.from('journal').delete().eq('date', date)
+          : supabase.from('journal').upsert({ date, body: next.body, mood: next.mood, updated_at: new Date().toISOString() }),
+      )
+      setStatus(ok ? 'Guardado' : 'No se pudo guardar')
     }
     pending.current = save
     if (timer.current) clearTimeout(timer.current)

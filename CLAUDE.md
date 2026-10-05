@@ -22,7 +22,7 @@ Variables en `.env.local` (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL` y `NE
 - `components/Shell.tsx` gestiona la sesión (muestra `Login` si no hay) y la navegación: barra inferior en móvil, columna lateral desde 900 px.
 - Las secciones se definen una sola vez en `lib/nav.ts`, agrupadas por propósito: Plan (Hoy, Semana, Revisión, Metas), Trabajo (Tareas, Proyectos, Ofertas), Vida (Lectura, Estudio, Diario) y Apuntes (Notas, Recordatorios). La columna lateral de escritorio, la barra inferior y «Más» salen de ahí.
 - `lib/db.ts` contiene el cliente, los tipos de cada tabla y las utilidades de fechas y horas. Reutilízalas; no dupliques.
-- Lo que usan varias páginas va en un componente (`components/TaskForm.tsx`, `TaskRow.tsx`, `ProjectForm.tsx`, `ConfirmButton.tsx` para borrados) o en un hook (`lib/useTasks.ts`), no copiado.
+- Lo que usan varias páginas va en un componente (`components/TaskForm.tsx`, `TaskRow.tsx`, `ProjectForm.tsx`, `ConfirmButton.tsx` para borrados, `BlockEditor.tsx` para crear y editar bloques) o en un hook (`lib/useTasks.ts`), no copiado.
 - La lógica pura con casos límite (fechas, periodos) va en `lib/` con una prueba `*.test.mjs` al lado que se ejecuta con `node`.
 - Los estilos están en `app/globals.css`, sin Tailwind ni librerías de componentes.
 
@@ -51,7 +51,9 @@ docs/                    Especificación, diseño y modelo de datos
 
 - Soluciones directas. Nada de capas de abstracción, gestores de estado ni dependencias nuevas sin una razón clara.
 - Cada página carga sus datos en un `load()` con `useCallback` y `useEffect`, y devuelve `null` mientras no hay datos.
-- Las escrituras son optimistas: primero se actualiza el estado local y después se llama a Supabase.
+- Ninguna consulta va suelta: las cargas pasan por `read(consulta, load)` y las escrituras por `write(consulta, load)` (`lib/db.ts`). Si fallan, avisan con `lib/notify.ts` (las cargas ofrecen «Reintentar») y la página recarga para que no quede en pantalla un cambio que no se guardó. En textos largos con guardado automático (notas, diario) se omite la recarga para no perder lo escrito.
+- Las escrituras son optimistas: primero se actualiza el estado local y después se llama a Supabase con `write`.
+- Los formularios que tapan la página son un `<dialog>` nativo (ver `components/BlockEditor.tsx`).
 - Fechas como texto `YYYY-MM-DD` en hora local (`ymd`, `addDays`, `mondayOf`). La semana empieza en lunes. No uses `toISOString()` para obtener un día.
 - Horas con coma decimal y un decimal como máximo (`hours`). Duración planificada con `plannedMin`, tiempo real con `doneMin`.
 - Toda la interfaz en español de España, con tuteo.

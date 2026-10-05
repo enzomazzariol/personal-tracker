@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import BlockEditor from '@/components/BlockEditor'
 import {
-  supabase, Block, Week, Area, Project,
+  Block, Week, Area, Project,
   ymd, mondayOf, addDays, loadWeekBlocks, loadWeek, loadAreas, loadProjects,
   dayLabel, dateLabel, hm, plannedMin, doneMin, hours,
 } from '@/lib/db'
-
-const NEXT: Record<Block['status'], Block['status']> = { pending: 'done', done: 'skipped', skipped: 'pending' }
 
 export default function Semana() {
   const today = ymd(new Date())
@@ -17,11 +16,14 @@ export default function Semana() {
   const [week, setWeek] = useState<Week | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  const [form, setForm] = useState({ date: today, start: '11:00', end: '12:00', area: '', project: '', title: '' })
+  /** Bloque abierto en el editor: uno existente, o null para crear uno nuevo en `date`. */
+  const [editing, setEditing] = useState<{ block: Block | null; date: string } | null>(null)
   const now = Date.now()
 
   const load = useCallback(async () => {
-    const [b, w, a, p] = await Promise.all([loadWeekBlocks(monday), loadWeek(monday), loadAreas(), loadProjects()])
+    const retry = () => load()
+    const [b, w, a, p] = await Promise.all([loadWeekBlocks(monday, retry), loadWeek(monday, retry), loadAreas(retry), loadProjects(retry)])
+    if (!b || !a || !p) return
     setBlocks(b)
     setWeek(w)
     setAreas(a)
@@ -35,23 +37,6 @@ export default function Semana() {
 
   const sum = (list: Block[], f: (b: Block) => number) => list.reduce((s, b) => s + f(b), 0)
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i))
-
-  async function cycle(b: Block) {
-    const status = NEXT[b.status]
-    const changes: Partial<Block> = { status, started_at: null }
-    if (status === 'done' && !b.actual_minutes) changes.actual_minutes = plannedMin(b)
-    if (status === 'skipped') changes.actual_minutes = 0
-    setBlocks((bs) => bs!.map((x) => (x.id === b.id ? { ...x, ...changes } : x)))
-    await supabase.from('blocks').update(changes).eq('id', b.id)
-  }
-  async function addBlock(e: React.FormEvent) {
-    e.preventDefault()
-    const area = form.area || areas[0]?.id
-    if (!form.title.trim() || form.end <= form.start || !area) return
-    await supabase.from('blocks').insert({ date: form.date, start_time: form.start, end_time: form.end, area_id: area, project_id: form.project || null, title: form.title.trim(), tag: '' })
-    setForm({ ...form, title: '' })
-    load()
-  }
 
   return (
     <>
@@ -101,14 +86,17 @@ export default function Semana() {
           const isToday = day === today
           return (
             <div key={day} className={`day ${isToday ? 'today' : ''}`}>
-              <div className="between mono" style={{ textTransform: 'uppercase', paddingBottom: 6 }}>
+              <div className="between mono" style={{ textTransform: 'uppercase' }}>
                 <span>{isToday ? `Hoy ${day.slice(8)}` : dayLabel(day)}</span>
-                <span className={list.length && done === list.length ? 'green' : 'muted'}>
-                  {done}/{list.length}
+                <span className="row" style={{ gap: 4 }}>
+                  <span className={list.length && done === list.length ? 'green' : 'muted'}>
+                    {done}/{list.length}
+                  </span>
+                  <button className="x" style={{ marginRight: -14 }} onClick={() => setEditing({ block: null, date: day })} aria-label={`Añadir bloque el ${dayLabel(day)}`}>+</button>
                 </span>
               </div>
               {list.map((b) => (
-                <button key={b.id} className="blk" onClick={() => cycle(b)} aria-label={`${b.title}: ${b.status === 'done' ? 'hecho' : b.status === 'skipped' ? 'saltado' : 'pendiente'}. Cambiar estado`}>
+                <button key={b.id} className="blk" onClick={() => setEditing({ block: b, date: b.date })} aria-label={`${b.title}: ${b.status === 'done' ? 'hecho' : b.status === 'skipped' ? 'saltado' : 'pendiente'}. Editar`}>
                   <span className={`mono ${b.status === 'done' ? 'green' : 'muted'}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {b.started_at && <span className="dot" />}
                     {hm(b.start_time)}
@@ -122,7 +110,7 @@ export default function Semana() {
           )
         })}
       </section>
-      <p className="sm muted" style={{ marginTop: -16 }}>Pulsa un bloque para cambiarlo entre pendiente, hecho y saltado.</p>
+      <p className="sm muted" style={{ marginTop: -16 }}>Pulsa un bloque para editarlo, cambiar su estado o sus tareas; «+» añade uno ese día.</p>
 
       <section className="panel between" style={{ flexWrap: 'wrap' }}>
         <div className="stack">
@@ -132,37 +120,17 @@ export default function Semana() {
         <Link className="btn" href={`/revision?w=${monday}`}>Abrir revisión</Link>
       </section>
 
-      <section className="stack">
-        <span className="label">Añadir bloque</span>
-        <form className="form" onSubmit={addBlock}>
-          <label className="sr" htmlFor="b-title">Título</label>
-          <input id="b-title" className="input grow" placeholder="Título del bloque" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <label className="sr" htmlFor="b-date">Día</label>
-          <input id="b-date" className="input" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-          <label className="sr" htmlFor="b-start">Inicio</label>
-          <input id="b-start" className="input" type="time" value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} />
-          <label className="sr" htmlFor="b-end">Fin</label>
-          <input id="b-end" className="input" type="time" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} />
-          <label className="sr" htmlFor="b-area">Área</label>
-          <select id="b-area" className="select" value={form.area || areas[0]?.id} onChange={(e) => setForm({ ...form, area: e.target.value })}>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>{a.name}</option>
-            ))}
-          </select>
-          {projects.length > 0 && (
-            <>
-              <label className="sr" htmlFor="b-project">Proyecto</label>
-              <select id="b-project" className="select" value={form.project} onChange={(e) => setForm({ ...form, project: e.target.value })}>
-                <option value="">Sin proyecto</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </>
-          )}
-          <button className="btn primary">Añadir</button>
-        </form>
-      </section>
+      {editing && (
+        <BlockEditor
+          key={editing.block?.id ?? `new-${editing.date}`}
+          block={editing.block}
+          date={editing.date}
+          areas={areas}
+          projects={projects}
+          onClose={() => setEditing(null)}
+          onChanged={load}
+        />
+      )}
     </>
   )
 }

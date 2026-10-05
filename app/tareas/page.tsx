@@ -14,8 +14,8 @@ export default function Tareas() {
   const [showDone, setShowDone] = useState(false)
 
   useEffect(() => {
-    loadAreas().then(setAreas)
-    loadProjects().then((ps) => setProjects(ps.filter((p) => p.status !== 'done')))
+    loadAreas().then((a) => a && setAreas(a))
+    loadProjects().then((ps) => ps && setProjects(ps.filter((p) => p.status !== 'done')))
   }, [])
 
   if (!tasks) return null

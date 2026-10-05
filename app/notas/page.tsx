@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { supabase, Note } from '@/lib/db'
+import { supabase, read, write, Note } from '@/lib/db'
 
 export default function Notas() {
   const [notes, setNotes] = useState<Note[] | null>(null)
@@ -10,8 +10,8 @@ export default function Notas() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('notes').select('*').order('pinned', { ascending: false }).order('updated_at', { ascending: false })
-    setNotes((data ?? []) as Note[])
+    const data = await read(supabase.from('notes').select('*').order('pinned', { ascending: false }).order('updated_at', { ascending: false }), () => load())
+    if (data) setNotes(data as Note[])
   }, [])
   useEffect(() => {
     load()
@@ -21,7 +21,7 @@ export default function Notas() {
   const note = notes.find((n) => n.id === openId) ?? null
 
   async function create() {
-    const { data } = await supabase.from('notes').insert({ title: '', body: '' }).select().single()
+    const { data } = await write<Note>(supabase.from('notes').insert({ title: '', body: '' }).select().single())
     if (data) {
       setNotes([data as Note, ...notes!])
       setOpenId(data.id)
@@ -35,8 +35,9 @@ export default function Notas() {
     if (timer.current) clearTimeout(timer.current)
     const next = { ...note, ...changes }
     timer.current = setTimeout(async () => {
-      const { error } = await supabase.from('notes').update({ title: next.title, body: next.body, pinned: next.pinned, updated_at: new Date().toISOString() }).eq('id', id)
-      setStatus(error ? 'No se pudo guardar' : 'Guardado')
+      // Sin recargar al fallar: el texto escrito se queda en pantalla para no perderlo.
+      const { ok } = await write(supabase.from('notes').update({ title: next.title, body: next.body, pinned: next.pinned, updated_at: new Date().toISOString() }).eq('id', id))
+      setStatus(ok ? 'Guardado' : 'No se pudo guardar')
     }, 500)
   }
   async function remove() {
@@ -44,7 +45,7 @@ export default function Notas() {
     const id = note.id
     setOpenId(null)
     setNotes((ns) => ns!.filter((n) => n.id !== id))
-    await supabase.from('notes').delete().eq('id', id)
+    await write(supabase.from('notes').delete().eq('id', id), load)
   }
 
   return (

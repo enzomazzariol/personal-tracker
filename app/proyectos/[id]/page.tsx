@@ -8,7 +8,7 @@ import ProjectForm, { ProjectDraft, toProjectRow } from '@/components/ProjectFor
 import TaskForm from '@/components/TaskForm'
 import TaskRow from '@/components/TaskRow'
 import {
-  supabase, Area, Block, Project, ProjectStatus, ProjectSummary, PROJECT_STATUS,
+  supabase, read, write, Area, Block, Project, ProjectStatus, ProjectSummary, PROJECT_STATUS,
   ymd, loadAreas, loadProjects, dateLabel, hm, hours, duration, plannedMin,
 } from '@/lib/db'
 import { EMPTY_TASK, useTasks } from '@/lib/useTasks'
@@ -27,14 +27,18 @@ export default function Proyecto() {
   const [projects, setProjects] = useState<Project[]>([])
 
   const load = useCallback(async () => {
+    const retry = () => load()
     const [p, b, a, ps] = await Promise.all([
+      // Sin read(): aquí null significa «no existe», no «ha fallado».
       supabase.from('project_summary').select('*').eq('id', id).maybeSingle(),
-      supabase.from('blocks').select('*').eq('project_id', id).order('date', { ascending: false }).order('start_time', { ascending: false }).limit(RECENT_BLOCKS),
-      loadAreas(),
-      loadProjects(),
+      read(supabase.from('blocks').select('*').eq('project_id', id).order('date', { ascending: false }).order('start_time', { ascending: false }).limit(RECENT_BLOCKS), retry),
+      loadAreas(retry),
+      loadProjects(retry),
     ])
+    if (p.error) return void read(Promise.resolve(p), retry) // muestra el aviso con «Reintentar»
+    if (!b || !a || !ps) return
     setProject(p.data as ProjectSummary | null)
-    setBlocks((b.data ?? []) as Block[])
+    setBlocks(b as Block[])
     setAreas(a)
     setProjects(ps)
   }, [id])
@@ -54,11 +58,11 @@ export default function Proyecto() {
 
   async function update(changes: Partial<Project>) {
     setProject((p) => p && { ...p, ...changes })
-    await supabase.from('projects').update(changes).eq('id', id)
+    await write(supabase.from('projects').update(changes).eq('id', id), load)
   }
   async function destroy() {
-    await supabase.from('projects').delete().eq('id', id)
-    router.push('/proyectos')
+    const { ok } = await write(supabase.from('projects').delete().eq('id', id))
+    if (ok) router.push('/proyectos')
   }
 
   const open = tasks.filter((t) => !t.done)

@@ -1,9 +1,31 @@
 import { createClient } from '@supabase/supabase-js'
+import { notify } from './notify'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const key = process.env.NEXT_PUBLIC_SUPABASE_KEY
 export const configured = Boolean(url && key)
 export const supabase = createClient(url || 'http://localhost:54321', key || 'missing')
+
+/** Carga: devuelve los datos o, si falla, avisa (con «Reintentar» si se pasa `retry`) y devuelve null. */
+export async function read<T>(query: PromiseLike<{ data: T | null; error: unknown }>, retry?: () => void): Promise<T | null> {
+  const { data, error } = await query
+  if (!error) return data
+  notify('No se han podido cargar los datos. Revisa la conexión.', retry && { label: 'Reintentar', run: retry })
+  return null
+}
+
+/**
+ * Escritura: si falla, avisa y llama a `onFail`, normalmente la recarga de la página,
+ * para que un cambio optimista que no se guardó no se quede en pantalla.
+ * Devuelve si fue bien y, si la consulta pide filas (`.select()`), los datos.
+ */
+export async function write<T = unknown>(query: PromiseLike<{ data?: T | null; error: unknown }>, onFail?: () => void) {
+  const { data, error } = await query
+  if (!error) return { ok: true, data: (data ?? null) as T | null }
+  notify('No se ha podido guardar. Revisa la conexión e inténtalo de nuevo.')
+  onFail?.()
+  return { ok: false, data: null }
+}
 
 export type BlockTask = { id: string; block_id: string; title: string; done: boolean; sort: number }
 export type Block = {
@@ -101,30 +123,26 @@ export const clock = (min: number) => {
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`
 }
 
-export async function loadWeekBlocks(monday: string) {
-  const { data, error } = await supabase
-    .from('blocks')
-    .select('*, block_tasks(*)')
-    .gte('date', monday)
-    .lte('date', addDays(monday, 6))
-    .order('date')
-    .order('start_time')
-  if (error) throw error
-  const blocks = (data ?? []) as Block[]
+// Los cargadores devuelven null si la consulta falla (ya avisado por read); `retry` se ofrece en el aviso.
+export async function loadWeekBlocks(monday: string, retry?: () => void) {
+  const data = await read(
+    supabase.from('blocks').select('*, block_tasks(*)').gte('date', monday).lte('date', addDays(monday, 6)).order('date').order('start_time'),
+    retry,
+  )
+  if (!data) return null
+  const blocks = data as Block[]
   blocks.forEach((b) => b.block_tasks?.sort((a, c) => a.sort - c.sort))
   return blocks
 }
-export async function loadWeek(monday: string) {
-  const { data } = await supabase.from('weeks').select('*').eq('start_date', monday).maybeSingle()
-  return data as Week | null
+/** La semana que empieza en `monday`, o null si no existe todavía (o si falla la carga). */
+export async function loadWeek(monday: string, retry?: () => void) {
+  return (await read(supabase.from('weeks').select('*').eq('start_date', monday).maybeSingle(), retry)) as Week | null
 }
-export async function loadAreas() {
-  const { data } = await supabase.from('areas').select('*').order('sort')
-  return (data ?? []) as Area[]
+export async function loadAreas(retry?: () => void) {
+  return (await read(supabase.from('areas').select('*').order('sort'), retry)) as Area[] | null
 }
-export async function loadProjects() {
-  const { data } = await supabase.from('projects').select('*').order('name')
-  return (data ?? []) as Project[]
+export async function loadProjects(retry?: () => void) {
+  return (await read(supabase.from('projects').select('*').order('name'), retry)) as Project[] | null
 }
 
 /**

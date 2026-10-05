@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Check from '@/components/Check'
-import { supabase, Reminder } from '@/lib/db'
+import { supabase, read, write, Reminder } from '@/lib/db'
 
 const fmt = (iso: string) => new Date(iso).toLocaleString('es-ES', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 
@@ -12,8 +12,8 @@ export default function Recordatorios() {
   const [when, setWhen] = useState('')
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('reminders').select('*').order('remind_at').limit(200)
-    setItems((data ?? []) as Reminder[])
+    const data = await read(supabase.from('reminders').select('*').order('remind_at').limit(200), () => load())
+    if (data) setItems(data as Reminder[])
   }, [])
   useEffect(() => {
     load()
@@ -23,18 +23,19 @@ export default function Recordatorios() {
   async function add(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim() || !when) return
-    await supabase.from('reminders').insert({ title: title.trim(), remind_at: new Date(when).toISOString() })
+    const { ok } = await write(supabase.from('reminders').insert({ title: title.trim(), remind_at: new Date(when).toISOString() }))
+    if (!ok) return
     setTitle('')
     setWhen('')
     load()
   }
   const toggle = async (r: Reminder) => {
     setItems((rs) => rs!.map((x) => (x.id === r.id ? { ...x, done: !r.done } : x)))
-    await supabase.from('reminders').update({ done: !r.done }).eq('id', r.id)
+    await write(supabase.from('reminders').update({ done: !r.done }).eq('id', r.id), load)
   }
   const remove = async (r: Reminder) => {
     setItems((rs) => rs!.filter((x) => x.id !== r.id))
-    await supabase.from('reminders').delete().eq('id', r.id)
+    await write(supabase.from('reminders').delete().eq('id', r.id), load)
   }
   const now = new Date().toISOString()
   const pending = items.filter((r) => !r.done)

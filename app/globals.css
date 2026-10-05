@@ -129,6 +129,8 @@ button.item:hover { color: var(--muted); }
 .day.today { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .day.today .muted, .day.today .label, .day.today .strike { color: var(--on-light-muted); }
 .day.today .green { color: var(--bg); }
+.day.today .x { color: var(--on-light-muted); }
+.day.today .x:hover { color: var(--bg); }
 .blk { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; min-height: 44px; background: none; border: 0; text-align: left; width: 100%; justify-content: center; }
 .blk .t { font-size: 14px; line-height: 1.43; overflow-wrap: anywhere; }
 @media (min-width: 900px) {
@@ -155,3 +157,16 @@ button.item:hover { color: var(--muted); }
 .login .btn { margin-top: 14px; }
 .err { font-size: 14px; }
 .err::before { content: '— '; }
+
+/* avisos */
+.toaster { position: fixed; inset: auto 16px 72px 16px; margin: 0; padding: 0; border: 0; background: none; overflow: visible; flex-direction: column; gap: 8px; pointer-events: none; }
+.toaster:popover-open { display: flex; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 4px 16px; background: var(--fg); color: var(--bg); max-width: 480px; margin: 0 auto; width: 100%; }
+.toast .link, .toast .x { color: var(--bg); }
+@media (min-width: 900px) { .toaster { inset: auto 48px 32px auto; width: 480px; } .toast { margin: 0; } }
+
+/* diálogo modal (<dialog>) */
+.dialog { width: calc(100% - 32px); max-width: 640px; max-height: calc(100dvh - 32px); padding: 28px 24px; border: 1px solid var(--line-strong); background: #0b0b0b; color: var(--fg); display: flex; flex-direction: column; gap: 28px; }
+.dialog:not([open]) { display: none; }
+.dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
+@media (min-width: 900px) { .dialog { padding: 34px; } }
