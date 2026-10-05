@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Check from '@/components/Check'
 import ConfirmButton from '@/components/ConfirmButton'
-import { supabase, read, write, Goal, GoalMilestone, GoalStatus, GOAL_STATUS, ymd, dateLabel } from '@/lib/db'
+import { supabase, read, write, Changes, Goal, GoalMilestone, GoalStatus, GOAL_STATUS, ymd, dateLabel } from '@/lib/db'
 import { periodLabel, periodOptions } from '@/lib/periods'
 
 const STATUSES = Object.keys(GOAL_STATUS) as GoalStatus[]
@@ -37,7 +37,7 @@ export default function Metas() {
     load()
   }
   const patchGoal = (id: string, f: (g: Goal) => Goal) => setGoals((gs) => gs!.map((g) => (g.id === id ? f(g) : g)))
-  async function update(id: string, changes: Partial<Goal>) {
+  async function update(id: string, changes: Changes<Goal, 'goal_milestones'>) {
     patchGoal(id, (g) => ({ ...g, ...changes }))
     await write(supabase.from('goals').update(changes).eq('id', id), load)
   }

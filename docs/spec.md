@@ -76,8 +76,8 @@ Se hacen por bloques, en orden. Cada bloque se cierra con build, pruebas y revis
 - [x] C2. Tareas que se repiten.
 
 **Bloque D: mantenibilidad**
-- [ ] D1. Tipos generados desde el esquema de Supabase.
-- [ ] D2. Comprobación automática en GitHub (build y pruebas en cada push).
+- [x] D1. Tipos generados desde el esquema de Supabase.
+- [x] D2. Comprobación automática en GitHub (build y pruebas en cada push).
 
 **Bloque E: preparar la venta**
 - [ ] E1. Pantalla para editar áreas.

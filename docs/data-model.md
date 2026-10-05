@@ -230,4 +230,6 @@ Si otra tabla va a apuntar a esta, añade `unique (id, user_id)` y referencia es
 
 ## Pruebas
 
-`sh supabase/tests/run.sh` levanta un Postgres desechable en Docker y comprueba dos casos: el esquema de la etapa 1 con todas las migraciones aplicadas y `schema.sql` desde cero. En ambos verifica que una cuenta no ve ni toca los datos de otra y que toda tabla de `public` cumple las reglas: `user_id`, RLS con `own_rows`, sin permisos para `anon` y referencias entre tablas que incluyen `user_id`. Esas reglas se comprueban solas para las tablas nuevas. Ejecútalo tras cualquier cambio de esquema.
+`sh supabase/tests/run.sh` levanta un Postgres desechable en Docker y comprueba dos casos: el esquema de la etapa 1 con todas las migraciones aplicadas y `schema.sql` desde cero. En ambos verifica que una cuenta no ve ni toca los datos de otra y que toda tabla de `public` cumple las reglas: `user_id`, RLS con `own_rows`, sin permisos para `anon` y referencias entre tablas que incluyen `user_id`. Esas reglas se comprueban solas para las tablas nuevas. Ejecútalo tras cualquier cambio de esquema (`npm test` lo incluye).
+
+`npm run types` genera `lib/database.types.ts` a partir de `schema.sql` con la CLI de Supabase. Los tipos de `lib/db.ts` salen de ahí, así que el compilador comprueba las columnas de cada consulta y de cada escritura. GitHub Actions falla si los tipos no coinciden con el esquema.

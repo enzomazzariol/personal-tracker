@@ -30,4 +30,4 @@ para cerrar el registro, desactívalo en Supabase → Authentication. Detalles e
 - `app/notas`, `app/recordatorios`: apuntes
 - `components/Shell.tsx`: sesión y navegación (barra inferior en móvil, columna lateral en escritorio)
 - `lib/db.ts`: cliente de Supabase, tipos y utilidades de fechas y horas
-- `supabase/`: esquema, migraciones y la prueba del esquema (`sh supabase/tests/run.sh`, necesita Docker)
+- `supabase/`: esquema, migraciones, la prueba del esquema y la generación de tipos (`npm test`, `npm run types`; necesitan Docker)

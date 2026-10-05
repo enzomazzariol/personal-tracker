@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import ConfirmButton from '@/components/ConfirmButton'
 import LogPages from '@/components/LogPages'
-import { supabase, read, write, pagesRead, Book, BookStatus, BOOK_STATUS, ReadingLog, ymd, mondayOf, dateLabel } from '@/lib/db'
+import { supabase, read, write, pagesRead, Changes, Book, BookStatus, BOOK_STATUS, ReadingLog, ymd, mondayOf, dateLabel } from '@/lib/db'
 
 const EMPTY = { title: '', author: '', pages: '' }
 
@@ -34,7 +34,7 @@ export default function Lectura() {
     setDraft(EMPTY)
     load()
   }
-  async function update(id: string, changes: Partial<Book>) {
+  async function update(id: string, changes: Changes<Book, 'reading_log'>) {
     setBooks((bs) => bs!.map((b) => (b.id === id ? { ...b, ...changes } : b)))
     await write(supabase.from('books').update(changes).eq('id', id), load)
   }
@@ -160,7 +160,7 @@ export default function Lectura() {
   )
 }
 
-function BookEditor({ book, onChange, onRemove }: { book: Book; onChange: (c: Partial<Book>) => void; onRemove: () => void }) {
+function BookEditor({ book, onChange, onRemove }: { book: Book; onChange: (c: Changes<Book, 'reading_log'>) => void; onRemove: () => void }) {
   const [notes, setNotes] = useState(book.notes)
   const id = book.id
   return (

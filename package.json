@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --no-warnings lib/periods.test.mjs && sh supabase/tests/run.sh",
+    "types": "sh supabase/types.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

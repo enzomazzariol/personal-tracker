@@ -1,0 +1,38 @@
+# Comprobaciones en cada push a main y en cada pull request.
+name: Comprobaciones
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  app:
+    name: Build y pruebas de la app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: node --no-warnings lib/periods.test.mjs
+
+  schema:
+    name: Esquema y tipos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # la prueba de migraciones parte del esquema del primer commit
+      - name: Migraciones y schema.sql (aislamiento entre cuentas)
+        run: sh supabase/tests/run.sh
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0 # la misma que genera los tipos en local, para que la salida coincida
+      - name: Los tipos generados están al día con schema.sql
+        run: |
+          sh supabase/types.sh
+          git diff --exit-code lib/database.types.ts || (echo "::error::lib/database.types.ts no coincide con schema.sql. Ejecuta npm run types y súbelo." && exit 1)

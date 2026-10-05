@@ -9,7 +9,7 @@ import BlockStudy from '@/components/BlockStudy'
 import FollowUps from '@/components/FollowUps'
 import JournalPrompt, { JOURNAL_PROMPT_HOUR } from '@/components/JournalPrompt'
 import {
-  supabase, read, write, Block, Task, Reminder, Week, Area, Project,
+  supabase, read, write, Changes, Block, Task, Reminder, Week, Area, Project,
   ymd, mondayOf, loadWeekBlocks, loadWeek, loadAreas, loadProjects, projectsForBlock, dueLabel,
   DAYS, MONTHS, hm, plannedMin, doneMin, runningMin, hours, duration, clock,
 } from '@/lib/db'
@@ -85,7 +85,7 @@ export default function Hoy() {
   const dueProjectTasks = projectTasks.filter((t) => t.due_date && t.due_date <= today && !inBlock(t))
   const listTasks = [...dueProjectTasks, ...tasks]
 
-  async function patch(b: Block, changes: Partial<Block>) {
+  async function patch(b: Block, changes: Changes<Block, 'block_tasks'>) {
     setBlocks((bs) => bs!.map((x) => (x.id === b.id ? { ...x, ...changes } : x)))
     await write(supabase.from('blocks').update(changes).eq('id', b.id), load)
   }

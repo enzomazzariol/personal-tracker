@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { notify } from './notify'
+import type { Database } from './database.types'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const key = process.env.NEXT_PUBLIC_SUPABASE_KEY
 export const configured = Boolean(url && key)
-export const supabase = createClient(url || 'http://localhost:54321', key || 'missing')
+export const supabase = createClient<Database>(url || 'http://localhost:54321', key || 'missing')
 
 /** Carga: devuelve los datos o, si falla, avisa (con «Reintentar» si se pasa `retry`) y devuelve null. */
 export async function read<T>(query: PromiseLike<{ data: T | null; error: unknown }>, retry?: () => void): Promise<T | null> {
@@ -27,59 +28,53 @@ export async function write<T = unknown>(query: PromiseLike<{ data?: T | null; e
   return { ok: false, data: null }
 }
 
-export type BlockTask = { id: string; block_id: string; title: string; done: boolean; sort: number }
-export type Block = {
-  id: string
-  date: string
-  start_time: string
-  end_time: string
-  area_id: string
-  project_id: string | null
-  tag: string
-  title: string
-  why: string
-  status: 'pending' | 'done' | 'skipped'
-  actual_minutes: number
-  started_at: string | null
-  block_tasks?: BlockTask[]
-}
+/** La fila de una tabla, tal como la genera `npm run types` en lib/database.types.ts. */
+type Row<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+/** La fila con los textos que la base de datos limita con `check` precisados como uniones de TypeScript. */
+type Narrow<R, N> = Omit<R, keyof N> & N
+/** Cambios para `update`: solo columnas, sin las relaciones anidadas que trae un `select` (p. ej. `block_tasks`). */
+export type Changes<T, Nested extends keyof T = never> = Partial<Omit<T, Nested>>
+
+export type BlockStatus = 'pending' | 'done' | 'skipped'
+export type BlockTask = Row<'block_tasks'>
+export type Block = Narrow<Row<'blocks'>, { status: BlockStatus }> & { block_tasks?: BlockTask[] }
 /** `kind` decide qué muestra la tarjeta de un bloque del área en Hoy (el libro en curso, los temas de estudio). */
-export type Area = { id: string; name: string; sort: number; kind: 'reading' | 'study' | null }
-export type Week = { start_date: string; number: number; goal: string; wins: string[]; review_notes: string; reviewed_at: string | null }
+export type Area = Narrow<Row<'areas'>, { kind: 'reading' | 'study' | null }>
+export type Week = Row<'weeks'>
 export type TaskKind = 'personal' | 'work'
 export const TASK_KIND: Record<TaskKind, string> = { personal: 'Cotidianas', work: 'Trabajo' }
 export type TaskRepeat = 'daily' | 'weekly' | 'monthly'
 export const TASK_REPEAT: Record<TaskRepeat, string> = { daily: 'Cada día', weekly: 'Cada semana', monthly: 'Cada mes' }
-export type Task = { id: string; title: string; kind: TaskKind; repeat: TaskRepeat | null; area_id: string | null; project_id: string | null; due_date: string | null; done: boolean; done_at: string | null; created_at: string }
-export type Note = { id: string; title: string; body: string; pinned: boolean; updated_at: string }
-export type Reminder = { id: string; title: string; remind_at: string; done: boolean }
+export type Task = Narrow<Row<'tasks'>, { kind: TaskKind; repeat: TaskRepeat | null }>
+export type Note = Row<'notes'>
+export type Reminder = Row<'reminders'>
 export type ProjectStatus = 'active' | 'paused' | 'done'
-export type Project = { id: string; name: string; client: string; area_id: string | null; status: ProjectStatus; due_date: string | null; created_at: string }
+export type Project = Narrow<Row<'projects'>, { status: ProjectStatus }>
 /** Fila de la vista project_summary: el proyecto con sus totales. */
 export type ProjectSummary = Project & { minutes: number; open_tasks: number }
 export const PROJECT_STATUS: Record<ProjectStatus, string> = { active: 'Activo', paused: 'En pausa', done: 'Terminado' }
 
 export type JobStatus = 'saved' | 'applied' | 'interview' | 'offer' | 'rejected'
-export type JobApplication = { id: string; company: string; role: string; url: string; status: JobStatus; applied_on: string | null; follow_up_on: string | null; notes: string; created_at: string }
+export type JobApplication = Narrow<Row<'job_applications'>, { status: JobStatus }>
 export const JOB_STATUS: Record<JobStatus, string> = { saved: 'Guardada', applied: 'Aplicada', interview: 'Entrevista', offer: 'Oferta', rejected: 'Descartada' }
 
 export type GoalStatus = 'active' | 'done' | 'dropped'
-export type GoalMilestone = { id: string; goal_id: string; title: string; done: boolean; done_at: string | null; sort: number }
-export type Goal = { id: string; title: string; period: string; due_date: string | null; status: GoalStatus; created_at: string; goal_milestones?: GoalMilestone[] }
+export type GoalMilestone = Row<'goal_milestones'>
+export type Goal = Narrow<Row<'goals'>, { status: GoalStatus }> & { goal_milestones?: GoalMilestone[] }
 export const GOAL_STATUS: Record<GoalStatus, string> = { active: 'En curso', done: 'Lograda', dropped: 'Descartada' }
 
 export type BookStatus = 'want' | 'reading' | 'done'
-export type ReadingLog = { id: string; book_id: string; date: string; pages: number }
-export type Book = { id: string; title: string; author: string; pages: number | null; status: BookStatus; started_on: string | null; finished_on: string | null; notes: string; created_at: string; reading_log?: ReadingLog[] }
+export type ReadingLog = Row<'reading_log'>
+export type Book = Narrow<Row<'books'>, { status: BookStatus }> & { reading_log?: ReadingLog[] }
 export const BOOK_STATUS: Record<BookStatus, string> = { reading: 'Leyendo', want: 'Por leer', done: 'Leído' }
 export const pagesRead = (b: Book) => (b.reading_log ?? []).reduce((sum, l) => sum + l.pages, 0)
 
 export type TopicStatus = 'pending' | 'in_progress' | 'mastered'
-export type StudyTopic = { id: string; track_id: string; title: string; status: TopicStatus; mastered_at: string | null; sort: number }
-export type StudyTrack = { id: string; name: string; sort: number; study_topics?: StudyTopic[] }
+export type StudyTopic = Narrow<Row<'study_topics'>, { status: TopicStatus }>
+export type StudyTrack = Row<'study_tracks'> & { study_topics?: StudyTopic[] }
 export const TOPIC_STATUS: Record<TopicStatus, string> = { pending: 'Pendiente', in_progress: 'En curso', mastered: 'Dominado' }
 
-export type JournalEntry = { date: string; body: string; mood: number | null; updated_at: string }
+export type JournalEntry = Row<'journal'>
 
 const pad = (n: number) => String(n).padStart(2, '0')
 export const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`

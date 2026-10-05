@@ -76,11 +76,11 @@ export default function BlockEditor({ block: initial, date, areas, projects, onC
       ...(d.status !== 'pending' || !block ? { started_at: null } : {}),
     }
     const query = block ? supabase.from('blocks').update(row).eq('id', block.id).select().single() : supabase.from('blocks').insert(row).select().single()
-    const { ok, data } = await write<Block>(query)
+    const { ok, data } = await write(query)
     if (!ok) return
     changed.current = true
     if (block) return close()
-    setBlock(data) // recién creado: el diálogo sigue abierto para añadirle tareas
+    setBlock(data as Block) // recién creado: el diálogo sigue abierto para añadirle tareas
   }
 
   async function addTask(e: React.FormEvent) {

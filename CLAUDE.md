@@ -10,7 +10,11 @@ Lee `docs/spec.md` antes de añadir una sección, `docs/design.md` antes de toca
 npm install
 npm run dev      # http://localhost:3000
 npm run build    # compila y comprueba tipos; debe pasar antes de cada commit
+npm test         # prueba de periodos y prueba del esquema en Docker
+npm run types    # regenera lib/database.types.ts desde supabase/schema.sql (Docker y CLI de Supabase)
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) ejecuta el build, las pruebas y la comprobación de que los tipos están al día en cada push a `main` y en cada pull request.
 
 Variables en `.env.local` (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_KEY` (clave pública).
 
@@ -38,6 +42,7 @@ app/revision/            Revisión semanal
 app/mas/                 Menú "Más" (solo móvil)
 components/              Shell, Login, Check, Veil, formularios y filas compartidas
 lib/db.ts                Cliente, tipos, utilidades
+lib/database.types.ts    Tipos generados del esquema (npm run types)
 lib/useTasks.ts          Datos y operaciones de tareas
 lib/nav.ts               Secciones y grupos de la navegación
 lib/periods.ts           Periodos de las metas (prueba: node lib/periods.test.mjs)
@@ -66,8 +71,8 @@ docs/                    Especificación, diseño y modelo de datos
 - Las referencias entre tablas incluyen `user_id` para que no se puedan mezclar datos de cuentas distintas.
 - Lo que escribe varias filas y tiene que hacerse entero (copiar una semana, repetir una tarea) va en una función o un disparador de Postgres, no en varias llamadas desde el navegador. Las funciones que la app llama son `security invoker`, para que RLS siga aplicando. Ver «Funciones y disparadores» en `docs/data-model.md`.
 - Los cambios de esquema van como archivo nuevo en `supabase/migrations/` con nombre `NNNN_descripcion.sql`, y además se reflejan en `schema.sql` para que siga creando la base de datos completa desde cero.
-- Si añades una tabla, añade su tipo en `lib/db.ts` y documenta sus campos en `docs/data-model.md`.
-- Tras cualquier cambio de esquema, `sh supabase/tests/run.sh` debe terminar en OK. Si la tabla es nueva, añade una comprobación de aislamiento en `supabase/tests/checks.sql`.
+- Si añades una tabla, añade su tipo en `lib/db.ts` a partir de la fila generada (`Row<'tabla'>`, precisando con `Narrow` los textos limitados por `check`) y documenta sus campos en `docs/data-model.md`.
+- Tras cualquier cambio de esquema: `npm run types` para regenerar `lib/database.types.ts` (no se edita a mano) y `npm test`, que debe terminar en OK. Si la tabla es nueva, añade una comprobación de aislamiento en `supabase/tests/checks.sql`.
 
 ## Qué no debe entrar en el repositorio
 
