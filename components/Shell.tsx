@@ -33,11 +33,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="shell">
-      <header className="topbar between">
+      <aside className="side">
         <span className="wordmark">tracker</span>
-        <span className="label mob">
-          {DAYS_SHORT[now.getDay()]} {String(now.getDate()).padStart(2, '0')} {MONTHS[now.getMonth()]}
-        </span>
         <nav aria-label="Secciones" className="mono">
           {NAV.map((g) => (
             <div key={g.label} className="navgroup" role="group" aria-label={g.label}>
@@ -49,8 +46,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               ))}
             </div>
           ))}
-          <button onClick={() => supabase.auth.signOut()}>Salir</button>
         </nav>
+        <button className="link" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+      </aside>
+      <header className="topbar between">
+        <span className="wordmark">tracker</span>
+        <span className="label">
+          {DAYS_SHORT[now.getDay()]} {String(now.getDate()).padStart(2, '0')} {MONTHS[now.getMonth()]}
+        </span>
       </header>
       <main className="main">{children}</main>
       <nav aria-label="Secciones" className="bottomnav mono">

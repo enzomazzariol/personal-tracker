@@ -32,6 +32,27 @@ export type Project = { id: string; name: string; client: string; area_id: strin
 export type ProjectSummary = Project & { minutes: number; open_tasks: number }
 export const PROJECT_STATUS: Record<ProjectStatus, string> = { active: 'Activo', paused: 'En pausa', done: 'Terminado' }
 
+export type JobStatus = 'saved' | 'applied' | 'interview' | 'offer' | 'rejected'
+export type JobApplication = { id: string; company: string; role: string; url: string; status: JobStatus; applied_on: string | null; notes: string; created_at: string }
+export const JOB_STATUS: Record<JobStatus, string> = { saved: 'Guardada', applied: 'Aplicada', interview: 'Entrevista', offer: 'Oferta', rejected: 'Descartada' }
+
+export type GoalStatus = 'active' | 'done' | 'dropped'
+export type GoalMilestone = { id: string; goal_id: string; title: string; done: boolean; sort: number }
+export type Goal = { id: string; title: string; period: string; due_date: string | null; status: GoalStatus; created_at: string; goal_milestones?: GoalMilestone[] }
+export const GOAL_STATUS: Record<GoalStatus, string> = { active: 'En curso', done: 'Lograda', dropped: 'Descartada' }
+
+export type BookStatus = 'want' | 'reading' | 'done'
+export type ReadingLog = { id: string; book_id: string; date: string; pages: number }
+export type Book = { id: string; title: string; author: string; pages: number | null; status: BookStatus; started_on: string | null; finished_on: string | null; notes: string; created_at: string; reading_log?: ReadingLog[] }
+export const BOOK_STATUS: Record<BookStatus, string> = { reading: 'Leyendo', want: 'Por leer', done: 'Leído' }
+
+export type TopicStatus = 'pending' | 'in_progress' | 'mastered'
+export type StudyTopic = { id: string; track_id: string; title: string; status: TopicStatus; sort: number }
+export type StudyTrack = { id: string; name: string; sort: number; study_topics?: StudyTopic[] }
+export const TOPIC_STATUS: Record<TopicStatus, string> = { pending: 'Pendiente', in_progress: 'En curso', mastered: 'Dominado' }
+
+export type JournalEntry = { date: string; body: string; mood: number | null; updated_at: string }
+
 const pad = (n: number) => String(n).padStart(2, '0')
 export const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 export const parseYmd = (s: string) => {

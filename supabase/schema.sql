@@ -108,10 +108,108 @@ create table public.reminders (
 );
 create index reminders_user_idx on public.reminders (user_id);
 
+create table public.job_applications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  company text not null check (company <> ''),
+  role text not null default '',
+  url text not null default '',
+  status text not null default 'saved' check (status in ('saved', 'applied', 'interview', 'offer', 'rejected')),
+  applied_on date,
+  notes text not null default '',
+  created_at timestamptz not null default now()
+);
+create index job_applications_user_idx on public.job_applications (user_id);
+
+create table public.goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  title text not null check (title <> ''),
+  period text not null, -- '2026' o '2026-T4'
+  due_date date,
+  status text not null default 'active' check (status in ('active', 'done', 'dropped')),
+  created_at timestamptz not null default now(),
+  unique (id, user_id)
+);
+create index goals_user_idx on public.goals (user_id);
+
+create table public.goal_milestones (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  goal_id uuid not null,
+  title text not null check (title <> ''),
+  done boolean not null default false,
+  sort int not null default 0,
+  foreign key (goal_id, user_id) references public.goals (id, user_id) on delete cascade
+);
+create index goal_milestones_goal_idx on public.goal_milestones (goal_id);
+create index goal_milestones_user_idx on public.goal_milestones (user_id);
+
+create table public.books (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  title text not null check (title <> ''),
+  author text not null default '',
+  pages int check (pages > 0),
+  status text not null default 'want' check (status in ('want', 'reading', 'done')),
+  started_on date,
+  finished_on date,
+  notes text not null default '',
+  created_at timestamptz not null default now(),
+  unique (id, user_id)
+);
+create index books_user_idx on public.books (user_id);
+
+create table public.reading_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  book_id uuid not null,
+  date date not null default current_date,
+  pages int not null check (pages > 0),
+  created_at timestamptz not null default now(),
+  foreign key (book_id, user_id) references public.books (id, user_id) on delete cascade
+);
+create index reading_log_book_idx on public.reading_log (book_id);
+create index reading_log_user_date_idx on public.reading_log (user_id, date);
+
+create table public.study_tracks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  name text not null check (name <> ''),
+  sort int not null default 0,
+  created_at timestamptz not null default now(),
+  unique (id, user_id)
+);
+create index study_tracks_user_idx on public.study_tracks (user_id);
+
+create table public.study_topics (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  track_id uuid not null,
+  title text not null check (title <> ''),
+  status text not null default 'pending' check (status in ('pending', 'in_progress', 'mastered')),
+  sort int not null default 0,
+  foreign key (track_id, user_id) references public.study_tracks (id, user_id) on delete cascade
+);
+create index study_topics_track_idx on public.study_topics (track_id);
+create index study_topics_user_idx on public.study_topics (user_id);
+
+create table public.journal (
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  date date not null,
+  body text not null default '',
+  mood smallint check (mood between 1 and 5),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, date)
+);
+
 do $$
 declare t text;
 begin
-  foreach t in array array['areas', 'weeks', 'projects', 'blocks', 'block_tasks', 'tasks', 'notes', 'reminders'] loop
+  foreach t in array array[
+    'areas', 'weeks', 'projects', 'blocks', 'block_tasks', 'tasks', 'notes', 'reminders',
+    'job_applications', 'goals', 'goal_milestones', 'books', 'reading_log', 'study_tracks', 'study_topics', 'journal'
+  ] loop
     execute format('alter table public.%I enable row level security', t);
     execute format(
       'create policy "own_rows" on public.%I for all to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()))', t);

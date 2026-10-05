@@ -2,6 +2,26 @@
 -- Supone dos cuentas: a@x.es (con datos) y b@x.es. Cualquier fallo aborta con un error.
 \set ON_ERROR_STOP on
 
+-- Reglas que toda tabla de public debe cumplir (cubren también las tablas futuras)
+do $$
+declare r record;
+begin
+  for r in select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+           where n.nspname = 'public' and c.relkind = 'r' and c.relname <> 'blocks_of_a' loop
+    assert (select relrowsecurity from pg_class where oid = format('public.%I', r.relname)::regclass), r.relname || ' sin RLS';
+    assert exists (select 1 from pg_policies where schemaname = 'public' and tablename = r.relname and policyname = 'own_rows'), r.relname || ' sin política own_rows';
+    assert not has_table_privilege('anon', format('public.%I', r.relname), 'select'), r.relname || ' legible por anon';
+    assert exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = r.relname and column_name = 'user_id'), r.relname || ' sin user_id';
+  end loop;
+  -- Toda referencia entre tablas de public incluye user_id, para no poder mezclar cuentas.
+  for r in select con.conname, con.conrelid::regclass as tbl from pg_constraint con
+           join pg_class t on t.oid = con.confrelid join pg_namespace n on n.oid = t.relnamespace
+           where con.contype = 'f' and n.nspname = 'public'
+             and not exists (select 1 from pg_attribute a where a.attrelid = con.conrelid and a.attnum = any (con.conkey) and a.attname = 'user_id') loop
+    raise exception 'La referencia % de % no incluye user_id', r.conname, r.tbl;
+  end loop;
+end $$;
+
 -- b recibió áreas por defecto al registrarse
 select public.as_user('b@x.es');
 do $$ begin

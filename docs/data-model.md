@@ -112,6 +112,62 @@ Cada fila de `projects` con `minutes` (suma de `actual_minutes` de sus bloques) 
 | done | boolean | |
 | created_at | timestamptz | |
 
+### job_applications
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | uuid, clave | |
+| company | text | No vacío |
+| role, url, notes | text | Opcionales (cadena vacía) |
+| status | text | `saved`, `applied`, `interview`, `offer` o `rejected` |
+| applied_on | date, opcional | Se pone sola al pasar a `applied` por primera vez |
+| created_at | timestamptz | |
+
+### goals y goal_milestones
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| goals.id | uuid, clave | |
+| goals.title | text | No vacío |
+| goals.period | text | `2026` (año) o `2026-T4` (trimestre); utilidades en `lib/periods.ts` |
+| goals.due_date | date, opcional | Fecha límite |
+| goals.status | text | `active`, `done` o `dropped` |
+| goal_milestones.goal_id | uuid | Referencia a `goals`, borrado en cascada |
+| goal_milestones.title, done, sort | text, boolean, int | El avance de la meta es hitos hechos / total |
+
+### books y reading_log
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| books.id | uuid, clave | |
+| books.title | text | No vacío |
+| books.author, notes | text | Opcionales; `notes` son las notas del libro |
+| books.pages | int, opcional | Total de páginas, para la barra de avance |
+| books.status | text | `want`, `reading` o `done` |
+| books.started_on, finished_on | date, opcionales | Se ponen al empezar y al terminar |
+| reading_log.book_id | uuid | Referencia a `books`, borrado en cascada |
+| reading_log.date, pages | date, int | Páginas leídas ese día; puede haber varias filas por día |
+
+### study_tracks y study_topics
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| study_tracks.id, name, sort | uuid, text, int | Una materia |
+| study_topics.track_id | uuid | Referencia a `study_tracks`, borrado en cascada |
+| study_topics.title, sort | text, int | |
+| study_topics.status | text | `pending`, `in_progress` o `mastered` |
+
+### journal
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| user_id, date | uuid y date, clave | Una entrada por día; se guarda con `upsert` |
+| body | text | |
+| mood | smallint, opcional | De 1 a 5 |
+| updated_at | timestamptz | |
+
+Si se vacían el texto y el ánimo, la entrada se borra.
+
 ## Cargar una semana
 
 Desde el editor SQL no hay sesión, así que `auth.uid()` es nulo. La primera línea del script indica a qué cuenta van los datos:
@@ -159,4 +215,4 @@ Si otra tabla va a apuntar a esta, añade `unique (id, user_id)` y referencia es
 
 ## Pruebas
 
-`sh supabase/tests/run.sh` levanta un Postgres desechable en Docker y comprueba dos casos: el esquema de la etapa 1 con todas las migraciones aplicadas y `schema.sql` desde cero. En ambos verifica que una cuenta no ve ni toca los datos de otra. Ejecútalo tras cualquier cambio de esquema.
+`sh supabase/tests/run.sh` levanta un Postgres desechable en Docker y comprueba dos casos: el esquema de la etapa 1 con todas las migraciones aplicadas y `schema.sql` desde cero. En ambos verifica que una cuenta no ve ni toca los datos de otra y que toda tabla de `public` cumple las reglas: `user_id`, RLS con `own_rows`, sin permisos para `anon` y referencias entre tablas que incluyen `user_id`. Esas reglas se comprueban solas para las tablas nuevas. Ejecútalo tras cualquier cambio de esquema.

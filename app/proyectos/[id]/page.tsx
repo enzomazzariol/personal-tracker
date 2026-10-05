@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import ConfirmButton from '@/components/ConfirmButton'
 import ProjectForm, { ProjectDraft, toProjectRow } from '@/components/ProjectForm'
 import TaskForm from '@/components/TaskForm'
 import TaskRow from '@/components/TaskRow'
@@ -24,7 +25,6 @@ export default function Proyecto() {
   const [blocks, setBlocks] = useState<Block[]>([])
   const [areas, setAreas] = useState<Area[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const load = useCallback(async () => {
     const [p, b, a, ps] = await Promise.all([
@@ -139,16 +139,8 @@ export default function Proyecto() {
         />
       </section>
 
-      <section className="row" style={{ flexWrap: 'wrap' }}>
-        {confirmDelete ? (
-          <>
-            <span className="sm muted">Las tareas y los bloques se conservan sin proyecto.</span>
-            <button className="btn ghost" onClick={() => setConfirmDelete(false)}>Cancelar</button>
-            <button className="btn primary" onClick={destroy}>Borrar proyecto</button>
-          </>
-        ) : (
-          <button className="btn ghost" onClick={() => setConfirmDelete(true)}>Borrar proyecto</button>
-        )}
+      <section>
+        <ConfirmButton label="Borrar proyecto" note="Las tareas y los bloques se conservan sin proyecto." onConfirm={destroy} />
       </section>
     </>
   )

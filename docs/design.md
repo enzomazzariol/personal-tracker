@@ -53,7 +53,7 @@ Reglas:
 ## Disposición
 
 - Móvil: cabecera fina con la marca y la fecha, una columna con 16 px de margen, barra inferior fija con cinco secciones.
-- Escritorio (desde 900 px): cabecera de 66 px con la marca a la izquierda y el menú a la derecha; contenido centrado con 1078 px de ancho máximo.
+- Escritorio (desde 900 px): columna lateral de 220 px con la marca, la navegación por grupos (nombre del grupo en 10 px y opacidad baja) y «Cerrar sesión» abajo; contenido centrado con 1078 px de ancho máximo.
 - `.mob` se muestra solo en móvil y `.desk` solo en escritorio.
 
 ## Clases disponibles

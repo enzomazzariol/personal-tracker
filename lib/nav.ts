@@ -9,6 +9,7 @@ export const NAV: NavGroup[] = [
       { href: '/', label: 'Hoy', mobile: true },
       { href: '/semana', label: 'Semana', mobile: true },
       { href: '/revision', label: 'Revisión' },
+      { href: '/metas', label: 'Metas' },
     ],
   },
   {
@@ -16,6 +17,15 @@ export const NAV: NavGroup[] = [
     items: [
       { href: '/tareas', label: 'Tareas', mobile: true },
       { href: '/proyectos', label: 'Proyectos', mobile: true },
+      { href: '/ofertas', label: 'Ofertas' },
+    ],
+  },
+  {
+    label: 'Vida',
+    items: [
+      { href: '/lectura', label: 'Lectura' },
+      { href: '/estudio', label: 'Estudio' },
+      { href: '/diario', label: 'Diario' },
     ],
   },
   {
